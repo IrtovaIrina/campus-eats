@@ -22,7 +22,6 @@ import ru.campuseats.repository.UserRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -98,13 +97,7 @@ public class CartService {
             }
             cartItemRepository.save(existingItem);
         } else {
-            CartItem newItem = CartItem.builder()
-                    .user(user)
-                    .dish(dish)
-                    .quantity(request.getQuantity())
-                    .specialRequest(request.getSpecialRequest() != null ? request.getSpecialRequest().trim() : null)
-                    .addedAt(LocalDateTime.now())
-                    .build();
+            CartItem newItem = cartMapper.toEntity(request, user, dish);
             cartItemRepository.save(newItem);
         }
 
@@ -154,19 +147,7 @@ public class CartService {
 
     private CartSummaryDto buildCartSummary(Long userId, List<CartItem> items) {
         if (items == null || items.isEmpty()) {
-            return CartSummaryDto.builder()
-                    .userId(userId)
-                    .items(Collections.emptyList())
-                    .totalQuantity(0)
-                    .totalAmount(BigDecimal.ZERO)
-                    .totalCalories(0)
-                    .totalProteins(0.0)
-                    .totalFats(0.0)
-                    .totalCarbs(0.0)
-                    .estimatedPrepMinutes(0)
-                    .availablePickupPoints(Collections.emptyList())
-                    .availableTimeSlots(DEFAULT_PICKUP_SLOTS)
-                    .build();
+            return cartMapper.toEmptySummaryDto(userId, DEFAULT_PICKUP_SLOTS);
         }
 
         Canteen canteen = items.get(0).getDish().getCanteen();
@@ -200,22 +181,20 @@ public class CartService {
                 pickupPointRepository.findByCanteenIdAndIsActiveTrueOrderByIdAsc(canteen.getId())
         );
 
-        return CartSummaryDto.builder()
-                .userId(userId)
-                .canteenId(canteen.getId())
-                .canteenName(canteen.getName())
-                .canteenBuilding(canteen.getBuilding())
-                .items(itemDtos)
-                .totalQuantity(totalQty)
-                .totalAmount(totalAmount.setScale(2, RoundingMode.HALF_UP))
-                .totalCalories(totalCalories)
-                .totalProteins(roundMacro(totalProteins))
-                .totalFats(roundMacro(totalFats))
-                .totalCarbs(roundMacro(totalCarbs))
-                .estimatedPrepMinutes(maxPrepTime)
-                .availablePickupPoints(pickupPoints)
-                .availableTimeSlots(DEFAULT_PICKUP_SLOTS)
-                .build();
+        return cartMapper.toSummaryDto(
+                userId,
+                canteen,
+                itemDtos,
+                totalQty,
+                totalAmount.setScale(2, RoundingMode.HALF_UP),
+                totalCalories,
+                roundMacro(totalProteins),
+                roundMacro(totalFats),
+                roundMacro(totalCarbs),
+                maxPrepTime,
+                pickupPoints,
+                DEFAULT_PICKUP_SLOTS
+        );
     }
 
     private double roundMacro(double value) {
