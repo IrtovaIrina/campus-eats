@@ -8,7 +8,6 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.campuseats.dto.CheckoutRequestDto;
 import ru.campuseats.dto.OrderResponseDto;
 import ru.campuseats.entity.*;
-import ru.campuseats.enums.OrderStatus;
 import ru.campuseats.mapper.OrderMapper;
 import ru.campuseats.repository.CartItemRepository;
 import ru.campuseats.repository.FoodOrderRepository;
@@ -17,7 +16,6 @@ import ru.campuseats.repository.UserRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -64,44 +62,21 @@ public class OrderService {
             );
         }
 
+        FoodOrder order = orderMapper.toOrderEntity(
+                request, user, canteen, pickupPoint, generateOrderNumber()
+        );
+
         BigDecimal totalAmount = BigDecimal.ZERO;
         int totalCalories = 0;
-
-        LocalDateTime now = LocalDateTime.now();
-        FoodOrder order = FoodOrder.builder()
-                .orderNumber(generateOrderNumber())
-                .user(user)
-                .canteen(canteen)
-                .pickupPoint(pickupPoint)
-                .pickupTimeSlot(request.getPickupTimeSlot().trim())
-                .totalAmount(BigDecimal.ZERO)
-                .totalCalories(0)
-                .status(OrderStatus.ACCEPTED)
-                .isPaid(false)
-                .comment(request.getComment() != null ? request.getComment().trim() : null)
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
 
         for (CartItem cartItem : cartItems) {
             Dish dish = cartItem.getDish();
             int qty = cartItem.getQuantity();
 
-            BigDecimal linePrice = dish.getPrice().multiply(BigDecimal.valueOf(qty));
-            int lineCalories = dish.getCalories() * qty;
+            totalAmount = totalAmount.add(dish.getPrice().multiply(BigDecimal.valueOf(qty)));
+            totalCalories += dish.getCalories() * qty;
 
-            totalAmount = totalAmount.add(linePrice);
-            totalCalories += lineCalories;
-
-            OrderItem orderItem = OrderItem.builder()
-                    .dish(dish)
-                    .dishNameSnapshot(dish.getName())
-                    .quantity(qty)
-                    .unitPrice(dish.getPrice())
-                    .caloriesPerUnit(dish.getCalories())
-                    .specialRequest(cartItem.getSpecialRequest())
-                    .build();
-
+            OrderItem orderItem = orderMapper.toOrderItemEntity(cartItem);
             order.addItem(orderItem);
         }
 
@@ -109,7 +84,6 @@ public class OrderService {
         order.setTotalCalories(totalCalories);
 
         FoodOrder savedOrder = foodOrderRepository.save(order);
-
         cartItemRepository.deleteByUserId(user.getId());
 
         return orderMapper.toResponseDto(savedOrder);

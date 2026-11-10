@@ -15,7 +15,6 @@ import ru.campuseats.repository.DishRepository;
 import ru.campuseats.repository.FavoriteDishRepository;
 import ru.campuseats.repository.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,29 +43,15 @@ public class FavoriteService {
 
         if (existing.isPresent()) {
             favoriteDishRepository.delete(existing.get());
-            return FavoriteToggleResponseDto.builder()
-                    .userId(userId)
-                    .dishId(dishId)
-                    .dishName(dish.getName())
-                    .isFavorite(false)
-                    .message("Блюдо «" + dish.getName() + "» удалено из избранного")
-                    .build();
+            String msg = "Блюдо «" + dish.getName() + "» удалено из избранного";
+            return favoriteDishMapper.toToggleResponseDto(user, dish, false, msg);
         }
 
-        FavoriteDish favoriteDish = FavoriteDish.builder()
-                .user(user)
-                .dish(dish)
-                .addedAt(LocalDateTime.now())
-                .build();
+        FavoriteDish favoriteDish = favoriteDishMapper.toEntity(user, dish);
         favoriteDishRepository.save(favoriteDish);
 
-        return FavoriteToggleResponseDto.builder()
-                .userId(userId)
-                .dishId(dishId)
-                .dishName(dish.getName())
-                .isFavorite(true)
-                .message("Блюдо «" + dish.getName() + "» добавлено в избранное")
-                .build();
+        String msg = "Блюдо «" + dish.getName() + "» добавлено в избранное";
+        return favoriteDishMapper.toToggleResponseDto(user, dish, true, msg);
     }
 
     @Transactional
