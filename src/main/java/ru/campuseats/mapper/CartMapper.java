@@ -6,10 +6,7 @@ import ru.campuseats.dto.AddToCartRequestDto;
 import ru.campuseats.dto.CartItemDto;
 import ru.campuseats.dto.CartSummaryDto;
 import ru.campuseats.dto.PickupPointDto;
-import ru.campuseats.entity.Canteen;
-import ru.campuseats.entity.CartItem;
-import ru.campuseats.entity.Dish;
-import ru.campuseats.entity.User;
+import ru.campuseats.entity.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -36,6 +33,14 @@ public interface CartMapper {
     @Mapping(target = "specialRequest", expression = "java(request.getSpecialRequest() != null ? request.getSpecialRequest().trim() : null)")
     @Mapping(target = "addedAt", expression = "java(java.time.LocalDateTime.now())")
     CartItem toEntity(AddToCartRequestDto request, User user, Dish dish);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "user", source = "user")
+    @Mapping(target = "dish", source = "orderItem.dish")
+    @Mapping(target = "quantity", source = "orderItem.quantity")
+    @Mapping(target = "specialRequest", source = "orderItem.specialRequest")
+    @Mapping(target = "addedAt", expression = "java(java.time.LocalDateTime.now())")
+    CartItem fromOrderItem(OrderItem orderItem, User user);
 
     @Mapping(target = "userId", source = "userId")
     @Mapping(target = "canteenId", ignore = true)
