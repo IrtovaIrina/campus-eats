@@ -11,14 +11,14 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Запрос на оформление предзаказа из корзины")
+@Schema(description = "Запрос на оформление заказа из корзины")
 public class CheckoutRequestDto {
 
     @NotNull(message = "Укажите ID пользователя")
     private Long userId;
 
     @NotBlank(message = "Выберите время получения заказа")
-    @Size(max = 60, message = "Слот времени не должен превышать 60 символов")
+    @Size(max = 60, message = "Время получения не должно превышать 60 символов")
     private String pickupTimeSlot;
 
     @Size(max = 300, message = "Комментарий к заказу не должен превышать 300 символов")

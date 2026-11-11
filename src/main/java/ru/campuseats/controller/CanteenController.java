@@ -15,13 +15,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/canteens")
 @RequiredArgsConstructor
-@Tag(name = "Точки питания кампуса", description = "Управление точками питания кампуса и подтверждение официального статуса")
+@Tag(name = "Точки питания", description = "Управление столовыми и кафе кампуса")
 public class CanteenController {
 
     private final CanteenService canteenService;
 
     @GetMapping
-    @Operation(summary = "Получить список всех точек питания кампуса")
+    @Operation(summary = "Получить список всех точек питания")
     public List<CanteenDto> getAllCanteens(
             @RequestParam(defaultValue = "false") boolean onlyOpen
     ) {
@@ -29,20 +29,20 @@ public class CanteenController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Получить подробную информацию о точке питания по ID")
+    @Operation(summary = "Получить точку питания по ID")
     public CanteenDto getCanteenById(@PathVariable Long id) {
         return canteenService.getCanteenById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Создать новую точку питания (для роли ADMIN)")
+    @Operation(summary = "Создать точку питания")
     public CanteenDto createCanteen(@Valid @RequestBody CreateCanteenRequestDto request) {
         return canteenService.createCanteen(request);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Обновить профиль точки питания (для VENDOR и ADMIN)")
+    @Operation(summary = "Обновить данные точки питания")
     public CanteenDto updateCanteen(
             @PathVariable Long id,
             @Valid @RequestBody CreateCanteenRequestDto request,
@@ -52,7 +52,7 @@ public class CanteenController {
     }
 
     @PatchMapping("/{id}/verify")
-    @Operation(summary = "Подтвердить или отозвать официальный статус точки питания (для роли ADMIN)")
+    @Operation(summary = "Подтвердить или отозвать статус точки питания")
     public CanteenDto verifyCanteen(
             @PathVariable Long id,
             @RequestParam boolean verified
@@ -62,7 +62,7 @@ public class CanteenController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Удалить точку питания (для роли ADMIN)")
+    @Operation(summary = "Удалить точку питания")
     public void deleteCanteen(@PathVariable Long id) {
         canteenService.deleteCanteen(id);
     }

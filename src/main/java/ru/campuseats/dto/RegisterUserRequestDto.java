@@ -13,7 +13,7 @@ import ru.campuseats.enums.Role;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Запрос на регистрацию нового пользователя")
+@Schema(description = "Запрос на регистрацию пользователя")
 public class RegisterUserRequestDto {
 
     @NotBlank(message = "Укажите ФИО")
@@ -40,14 +40,9 @@ public class RegisterUserRequestDto {
     private Role role;
 
     private String studentGroup;
-
     private String canteenName;
-
     private String canteenBuilding;
-
     private Integer canteenFloor;
-
     private String canteenOpeningHours;
-
     private String canteenDescription;
 }

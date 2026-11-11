@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Запрос на обновление настроек профиля в личном кабинете")
+@Schema(description = "Запрос на обновление профиля пользователя")
 public class UpdateProfileRequestDto {
 
     @NotBlank(message = "Укажите ФИО")
