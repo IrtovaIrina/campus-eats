@@ -15,13 +15,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/vendor/orders")
 @RequiredArgsConstructor
-@Tag(name = "08. Управление заказами (ЛК Точки питания)", description = "Очередь заказов повара/менеджера и смена статусов с генерацией пуш-уведомлений")
+@Tag(name = "Заказы точки питания", description = "Очередь заказов и смена статусов приготовления")
 public class VendorOrderController {
 
     private final VendorOrderService vendorOrderService;
 
     @GetMapping("/canteen/{canteenId}")
-    @Operation(summary = "Получить текущую очередь заказов для столовой с фильтрацией по статусу")
+    @Operation(summary = "Получить очередь заказов точки питания")
     public List<OrderResponseDto> getCanteenQueue(
             @PathVariable Long canteenId,
             @RequestParam(required = false) OrderStatus status
@@ -30,10 +30,7 @@ public class VendorOrderController {
     }
 
     @PatchMapping("/{orderId}/status")
-    @Operation(
-            summary = "Изменить статус заказа по цепочке (ACCEPTED → COOKING → READY → COMPLETED)",
-            description = "Переводит заказ в новый статус и автоматически генерирует персональное пуш-уведомление для студента"
-    )
+    @Operation(summary = "Изменить статус приготовления заказа")
     public OrderResponseDto updateStatus(
             @PathVariable Long orderId,
             @Valid @RequestBody UpdateOrderStatusRequestDto request

@@ -9,21 +9,12 @@ import ru.campuseats.enums.OrderStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Этап выполнения заказа для прогресс-бара")
+@Schema(description = "Этап выполнения заказа")
 public class TrackingStepDto {
 
-    @Schema(description = "Код статуса этапа", example = "COOKING")
     private OrderStatus status;
-
-    @Schema(description = "Название этапа", example = "Готовится")
     private String title;
-
-    @Schema(description = "Подсказка по этапу", example = "Повар столовой собирает и готовит ваши блюда")
     private String description;
-
-    @Schema(description = "Пройден ли этап", example = "true")
     private boolean completed;
-
-    @Schema(description = "Является ли этап текущим активным", example = "true")
     private boolean current;
 }

@@ -9,11 +9,9 @@ import ru.campuseats.dto.*;
 import ru.campuseats.entity.*;
 import ru.campuseats.enums.OrderStatus;
 import ru.campuseats.mapper.CartMapper;
+import ru.campuseats.mapper.NotificationMapper;
 import ru.campuseats.mapper.OrderMapper;
-import ru.campuseats.repository.CartItemRepository;
-import ru.campuseats.repository.FoodOrderRepository;
-import ru.campuseats.repository.PickupPointRepository;
-import ru.campuseats.repository.UserRepository;
+import ru.campuseats.repository.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -27,10 +25,11 @@ public class OrderService {
     private final FoodOrderRepository foodOrderRepository;
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
-    private final PickupPointRepository pickupPointRepository;
+    private final NotificationRepository notificationRepository;
     private final CartService cartService;
     private final OrderMapper orderMapper;
     private final CartMapper cartMapper;
+    private final NotificationMapper notificationMapper;
 
     private static final List<OrderStatus> ACTIVE_STATUSES = List.of(
             OrderStatus.ACCEPTED, OrderStatus.COOKING, OrderStatus.READY
@@ -40,41 +39,34 @@ public class OrderService {
     public OrderResponseDto checkoutFromCart(CheckoutRequestDto request) {
         User user = findUserOrThrow(request.getUserId());
 
-        List<CartItem> cartItems = cartItemRepository.findByUserIdOrderByAddedAtAsc(user.getId());
-        if (cartItems.isEmpty()) {
+        List<CartItem> allCartItems = cartItemRepository.findByUserIdOrderByAddedAtAsc(user.getId());
+        if (allCartItems.isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Корзина пуста. Добавьте блюда перед оформлением предзаказа"
             );
         }
 
-        Canteen canteen = cartItems.get(0).getDish().getCanteen();
+        // В заказ попадают ТОЛЬКО доступные блюда (не в стоп-листе)
+        List<CartItem> availableCartItems = allCartItems.stream()
+                .filter(ci -> ci.getDish() != null && Boolean.TRUE.equals(ci.getDish().getIsAvailable()))
+                .toList();
 
-        PickupPoint pickupPoint = pickupPointRepository.findById(request.getPickupPointId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Окно выдачи с ID " + request.getPickupPointId() + " не найдено"
-                ));
-
-        if (!pickupPoint.getCanteen().getId().equals(canteen.getId())) {
+        if (availableCartItems.isEmpty()) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Выбранное окно выдачи не принадлежит точке питания «" + canteen.getName() + "»"
+                    HttpStatus.BAD_REQUEST, "Все блюда в корзине закончились. Выберите другие позиции в меню."
             );
         }
 
-        if (!Boolean.TRUE.equals(pickupPoint.getIsActive())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Выбранное окно выдачи временно закрыто"
-            );
-        }
+        Canteen canteen = availableCartItems.get(0).getDish().getCanteen();
 
         FoodOrder order = orderMapper.toOrderEntity(
-                request, user, canteen, pickupPoint, generateOrderNumber()
+                request, user, canteen, generateOrderNumber()
         );
 
         BigDecimal totalAmount = BigDecimal.ZERO;
         int totalCalories = 0;
 
-        for (CartItem cartItem : cartItems) {
+        for (CartItem cartItem : availableCartItems) {
             Dish dish = cartItem.getDish();
             int qty = cartItem.getQuantity();
 
@@ -90,6 +82,25 @@ public class OrderService {
 
         FoodOrder savedOrder = foodOrderRepository.save(order);
         cartItemRepository.deleteByUserId(user.getId());
+
+        Notification studentNotif = notificationMapper.toEntity(
+                user,
+                savedOrder,
+                "Предзаказ #" + savedOrder.getOrderNumber() + " принят",
+                "Ваш заказ в «" + canteen.getName() + "» на время " + savedOrder.getPickupTimeSlot() + " зарегистрирован."
+        );
+        notificationRepository.save(studentNotif);
+
+        if (canteen.getManager() != null) {
+            Notification vendorNotif = notificationMapper.toEntity(
+                    canteen.getManager(),
+                    savedOrder,
+                    "Новый предзаказ #" + savedOrder.getOrderNumber(),
+                    "Поступил предзаказ от " + user.getFullName() + " на сумму " + savedOrder.getTotalAmount()
+                            + " ₽ ко времени " + savedOrder.getPickupTimeSlot() + "."
+            );
+            notificationRepository.save(vendorNotif);
+        }
 
         return orderMapper.toResponseDto(savedOrder);
     }
@@ -123,10 +134,10 @@ public class OrderService {
         };
 
         String headline = switch (current) {
-            case ACCEPTED -> "Заказ #" + order.getOrderNumber() + " принят столовой и ожидает начала приготовления";
-            case COOKING -> "Повар готовит ваш заказ #" + order.getOrderNumber() + " к слоту " + order.getPickupTimeSlot();
-            case READY -> "Заказ #" + order.getOrderNumber() + " готов! Заберите без очереди в окне «" + order.getPickupPoint().getWindowCode() + "»";
-            case COMPLETED -> "Заказ #" + order.getOrderNumber() + " выдан. Вы можете повторить его в 1 клик или оставить отзыв";
+            case ACCEPTED -> "Заказ #" + order.getOrderNumber() + " принят точкой питания и ожидает приготовления";
+            case COOKING -> "Повар готовит ваш заказ #" + order.getOrderNumber() + " ко времени " + order.getPickupTimeSlot();
+            case READY -> "Заказ #" + order.getOrderNumber() + " готов к выдаче в «" + order.getCanteen().getName() + "»!";
+            case COMPLETED -> "Заказ #" + order.getOrderNumber() + " выдан. Вы можете повторить его или оставить отзыв";
             case CANCELLED -> "Заказ #" + order.getOrderNumber() + " был отменён";
         };
 
@@ -141,25 +152,25 @@ public class OrderService {
         List<TrackingStepDto> steps = List.of(
                 orderMapper.toTrackingStepDto(
                         OrderStatus.ACCEPTED,
-                        "Заказ зарегистрирован в очереди столовой",
+                        "Заказ принят точкой питания",
                         stageRank >= 1,
                         current == OrderStatus.ACCEPTED
                 ),
                 orderMapper.toTrackingStepDto(
                         OrderStatus.COOKING,
-                        "Повар столовой готовит и упаковывает блюда",
+                        "Повар готовит и собирает блюда",
                         stageRank >= 2,
                         current == OrderStatus.COOKING
                 ),
                 orderMapper.toTrackingStepDto(
                         OrderStatus.READY,
-                        "Ожидает в окне экспресс-выдачи без очереди",
+                        "Готов к получению в точке питания",
                         stageRank >= 3,
                         current == OrderStatus.READY
                 ),
                 orderMapper.toTrackingStepDto(
                         OrderStatus.COMPLETED,
-                        "Заказ получен студентом",
+                        "Заказ выдан студенту",
                         stageRank >= 4,
                         current == OrderStatus.COMPLETED
                 )
@@ -173,7 +184,6 @@ public class OrderService {
         FoodOrder previousOrder = findOrderOrThrow(orderId);
         User user = previousOrder.getUser();
 
-        // Очищаем текущую корзину студента перед наполнением блюдами из повторяемого заказа
         cartItemRepository.deleteByUserId(user.getId());
         cartItemRepository.flush();
 
@@ -190,7 +200,7 @@ public class OrderService {
         if (copiedCount == 0) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Все блюда из этого заказа сейчас находятся в стоп-листе и недоступны для повтора"
+                    "Все блюда из этого заказа сейчас закончились и недоступны для повтора"
             );
         }
 

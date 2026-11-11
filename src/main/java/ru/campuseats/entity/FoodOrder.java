@@ -33,10 +33,6 @@ public class FoodOrder {
     @JoinColumn(name = "canteen_id", nullable = false)
     private Canteen canteen;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "pickup_point_id", nullable = false)
-    private PickupPoint pickupPoint;
-
     @Column(nullable = false, length = 60)
     private String pickupTimeSlot;
 

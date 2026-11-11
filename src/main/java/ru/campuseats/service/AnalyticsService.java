@@ -22,7 +22,6 @@ public class AnalyticsService {
 
     private final FoodOrderRepository foodOrderRepository;
     private final CanteenRepository canteenRepository;
-    private final PickupPointRepository pickupPointRepository;
     private final DishRepository dishRepository;
     private final UserRepository userRepository;
     private final AnalyticsMapper analyticsMapper;
@@ -104,24 +103,16 @@ public class AnalyticsService {
                         || o.getStatus() == OrderStatus.READY)
                 .count();
 
-        int slotCapacity = pickupPointRepository.findByCanteenIdAndIsActiveTrueOrderByIdAsc(canteen.getId())
-                .stream()
-                .mapToInt(PickupPoint::getMaxOrdersPerSlot)
-                .sum();
-        if (slotCapacity <= 0) {
-            slotCapacity = 15;
-        }
-
-        // Для наглядной индикации нагрузки рассчитываем процент от ёмкости слота
-        int workloadPercent = Math.min(100, Math.round((activeQueue * 100.0f) / Math.max(5, slotCapacity / 3)));
+        int slotCapacity = 5;
+        int workloadPercent = Math.min(100, Math.round((activeQueue * 100.0f) / slotCapacity));
 
         String workloadLevel;
         if (workloadPercent >= 75) {
-            workloadLevel = "HIGH_PEAK";
-        } else if (workloadPercent >= 35) {
-            workloadLevel = "MODERATE";
+            workloadLevel = "Час пик";
+        } else if (workloadPercent >= 40) {
+            workloadLevel = "Средняя";
         } else {
-            workloadLevel = "LOW";
+            workloadLevel = "Свободно";
         }
 
         BigDecimal revenue = canteenOrders.stream()

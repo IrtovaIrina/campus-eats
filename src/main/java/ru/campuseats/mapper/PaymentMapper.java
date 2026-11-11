@@ -16,7 +16,6 @@ public interface PaymentMapper {
     @Mapping(target = "orderId", source = "order.id")
     @Mapping(target = "orderNumber", source = "order.orderNumber")
     @Mapping(target = "canteenName", source = "order.canteen.name")
-    @Mapping(target = "originalOrderAmount", source = "order.totalAmount")
     @Mapping(target = "paymentMethodDisplayName", expression = "java(tx.getPaymentMethod() != null ? tx.getPaymentMethod().getDisplayName() : \"\")")
     PaymentReceiptDto toReceiptDto(PaymentTransaction tx);
 
@@ -24,17 +23,13 @@ public interface PaymentMapper {
     @Mapping(target = "order", source = "order")
     @Mapping(target = "paymentMethod", source = "request.paymentMethod")
     @Mapping(target = "amountPaid", source = "finalAmountPaid")
-    @Mapping(target = "bonusUsed", source = "bonusToUse")
-    @Mapping(target = "cashbackEarned", source = "cashback")
     @Mapping(target = "transactionReference", expression = "java(generateTxRef(request))")
     @Mapping(target = "status", constant = "SUCCESS")
     @Mapping(target = "paidAt", expression = "java(java.time.LocalDateTime.now())")
     PaymentTransaction toEntity(
             FoodOrder order,
             PaymentRequestDto request,
-            BigDecimal finalAmountPaid,
-            BigDecimal bonusToUse,
-            BigDecimal cashback
+            BigDecimal finalAmountPaid
     );
 
     default String generateTxRef(PaymentRequestDto request) {

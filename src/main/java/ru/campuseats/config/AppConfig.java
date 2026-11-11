@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import ru.campuseats.repository.UserRepository;
-
 import javax.sql.DataSource;
 
 @Slf4j
@@ -33,7 +33,7 @@ public class AppConfig implements WebMvcConfigurer {
                         .description("Сервис предзаказа еды в точках питания кампуса без очередей")
                         .contact(new Contact()
                                 .name("CampusEats Team")
-                                .email("admin@campus.ru")));
+                                .email("admin@campus.edu")));
     }
 
     @Override
@@ -42,6 +42,12 @@ public class AppConfig implements WebMvcConfigurer {
                 .allowedOrigins("*")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*");
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:./uploads/");
     }
 
     @Bean

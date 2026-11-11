@@ -40,4 +40,14 @@ public class NotificationService {
         notification.setIsRead(true);
         return notificationMapper.toDto(notificationRepository.save(notification));
     }
+
+    @Transactional(readOnly = true)
+    public long getUnreadCount(Long userId) {
+        return notificationRepository.countByUserIdAndIsReadFalse(userId);
+    }
+
+    @Transactional
+    public void deleteNotification(Long notificationId) {
+        notificationRepository.deleteById(notificationId);
+    }
 }

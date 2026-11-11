@@ -10,18 +10,16 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Запрос на авторизацию пользователя")
+@Schema(description = "Запрос на вход в систему")
 public class LoginRequestDto {
 
     @NotBlank(message = "Email не может быть пустым")
     @Email(
             regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
-            message = "Некорректный формат email (пример: a.d.sokolov@campus.ru)"
+            message = "Некорректный формат email (пример: a.d.sokolov@campus.edu)"
     )
-    @Schema(description = "Email пользователя")
     private String email;
 
     @NotBlank(message = "Пароль не может быть пустым")
-    @Schema(description = "Пароль пользователя")
     private String password;
 }

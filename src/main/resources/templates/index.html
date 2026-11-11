@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusEats</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .dish-thumb {
+            width: 72px;
+            height: 54px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        .dish-detail-img {
+            width: 100%;
+            max-width: 320px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">CampusEats</a>
+
+        <div th:if="${currentUser != null}" class="d-flex align-items-center gap-2 text-white">
+            <span class="small" th:text="${currentUser.fullName}"></span>
+            <a href="/swagger-ui.html" target="_blank" class="btn btn-outline-light btn-sm">API</a>
+            <form method="post" action="/ui/auth/logout" class="m-0">
+                <button type="submit" class="btn btn-danger btn-sm">Выйти</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container pb-5">
+
+    <div th:if="${message != null}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${errorMessage != null}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <div th:if="${currentUser == null}" class="row justify-content-center">
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <ul class="nav nav-pills nav-fill">
+                        <li class="nav-item">
+                            <a class="nav-link" th:classappend="${authMode == 'login' ? 'active' : ''}"
+                               th:href="@{/(authMode='login')}">Вход</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:classappend="${authMode == 'register' ? 'active' : ''}"
+                               th:href="@{/(authMode='register')}">Регистрация</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+
+                    <form th:if="${authMode == 'login'}" method="post" action="/ui/auth/login">
+                        <h5 class="mb-3">Вход в аккаунт</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="a.d.sokolov@campus.edu" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Пароль</label>
+                            <input type="password" name="password" class="form-control" value="student123" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Войти</button>
+                    </form>
+
+                    <form th:if="${authMode == 'register'}" method="post" action="/ui/auth/register">
+                        <h5 class="mb-3">Регистрация</h5>
+                        <div class="mb-2">
+                            <label class="form-label">Тип аккаунта</label>
+                            <select name="role" class="form-select"
+                                    onchange="document.getElementById('vendorFields').style.display = (this.value === 'VENDOR' ? 'block' : 'none');">
+                                <option value="STUDENT">Студент / Преподаватель</option>
+                                <option value="VENDOR">Точка питания</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">ФИО</label>
+                            <input type="text" name="fullName" class="form-control" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Пароль</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Телефон</label>
+                            <input type="text" name="phone" class="form-control" placeholder="+7 (922) 114-55-09" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Учебная группа / Должность</label>
+                            <input type="text" name="studentGroup" class="form-control">
+                        </div>
+
+                        <div id="vendorFields" style="display: none;" class="p-2 mb-3 bg-light border rounded">
+                            <h6 class="small fw-bold mb-2">Информация о точке питания</h6>
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">Название</label>
+                                <input type="text" name="canteenName" class="form-control form-control-sm">
+                            </div>
+                            <div class="row g-2 mb-2">
+                                <div class="col-8">
+                                    <label class="form-label small mb-1">Корпус</label>
+                                    <input type="text" name="canteenBuilding" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small mb-1">Этаж</label>
+                                    <input type="number" name="canteenFloor" class="form-control form-control-sm" value="1" min="1">
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">Часы работы</label>
+                                <input type="text" name="canteenOpeningHours" class="form-control form-control-sm" value="08:30 - 18:00">
+                            </div>
+                            <div class="mb-1">
+                                <label class="form-label small mb-1">Описание</label>
+                                <input type="text" name="canteenDescription" class="form-control form-control-sm">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">Зарегистрироваться</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${currentUser != null and currentUser.role.name() == 'STUDENT'}">
+
+        <ul class="nav nav-tabs mb-3 flex-wrap">
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${activeTab == 'catalog' or activeTab == 'dish' ? 'active fw-bold' : ''}"
+                   th:href="@{/(tab='catalog')}">Меню</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${activeTab == 'cart' ? 'active fw-bold' : ''}"
+                   th:href="@{/(tab='cart')}">Корзина (<span th:text="${cart.totalQuantity}"></span>)</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${activeTab == 'orders' ? 'active fw-bold' : ''}"
+                   th:href="@{/(tab='orders')}">Мои заказы</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${activeTab == 'favorites' ? 'active fw-bold' : ''}"
+                   th:href="@{/(tab='favorites')}">Избранное</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${activeTab == 'notifications' ? 'active fw-bold' : ''}"
+                   th:href="@{/(tab='notifications')}">Уведомления (<span th:text="${unreadCount}"></span>)</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${activeTab == 'profile' ? 'active fw-bold' : ''}"
+                   th:href="@{/(tab='profile')}">Профиль</a>
+            </li>
+        </ul>
+
+        <div th:if="${activeTab == 'catalog'}" class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Меню столовых и кафе</h5>
+
+                <form method="get" action="/" class="row g-2 bg-light p-3 border rounded mb-3">
+                    <input type="hidden" name="tab" value="catalog">
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small mb-1">Точка питания</label>
+                        <select name="canteenId" class="form-select form-select-sm">
+                            <option value="">Все</option>
+                            <option th:each="c : ${canteens}" th:value="${c.id}"
+                                    th:selected="${c.id == canteenId}" th:text="${c.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small mb-1">Категория</label>
+                        <select name="categoryId" class="form-select form-select-sm">
+                            <option value="">Все</option>
+                            <option th:each="cat : ${categories}" th:value="${cat.id}"
+                                    th:selected="${cat.id == categoryId}" th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small mb-1">Диета</label>
+                        <select name="dietaryTagCode" class="form-select form-select-sm">
+                            <option value="">Все</option>
+                            <option th:each="t : ${dietaryTags}" th:value="${t.code}"
+                                    th:selected="${t.code == dietaryTagCode}" th:text="${t.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small mb-1">Макс. цена (₽)</label>
+                        <input type="number" name="maxPrice" th:value="${maxPrice}" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small mb-1">Макс. калории (ккал)</label>
+                        <input type="number" name="maxCalories" th:value="${maxCalories}" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small mb-1">Поиск</label>
+                        <input type="text" name="search" th:value="${search}" class="form-control form-control-sm" placeholder="Название или состав">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small mb-1">Сортировка</label>
+                        <select name="sortBy" class="form-select form-select-sm">
+                            <option value="rating" th:selected="${sortBy == 'rating'}">По рейтингу</option>
+                            <option value="price_asc" th:selected="${sortBy == 'price_asc'}">Сначала дешевле</option>
+                            <option value="price_desc" th:selected="${sortBy == 'price_desc'}">Сначала дороже</option>
+                            <option value="calories_asc" th:selected="${sortBy == 'calories_asc'}">По калорийности</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-4 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-success btn-sm">Найти</button>
+                        <a th:href="@{/(tab='catalog')}" class="btn btn-outline-secondary btn-sm">Сбросить</a>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Фото</th>
+                            <th>Блюдо</th>
+                            <th>Точка питания</th>
+                            <th>КБЖУ</th>
+                            <th>Цена</th>
+                            <th>Рейтинг</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="d : ${dishes}">
+                            <td><img th:src="${d.imageUrl}" alt="Фото" class="dish-thumb"></td>
+                            <td>
+                                <strong th:text="${d.name}"></strong><br>
+                                <small class="text-muted" th:text="${d.composition}"></small><br>
+                                <span th:each="t : ${d.dietaryTags}" class="badge bg-info text-dark me-1" th:text="${t.name}"></span>
+                            </td>
+                            <td>
+                                <span th:text="${d.canteenName}"></span><br>
+                                <small class="text-muted" th:text="${d.categoryName}"></small>
+                            </td>
+                            <td>
+                                <span th:text="${d.weightGrams} + ' г | '"></span>
+                                <strong th:text="${d.calories} + ' ккал'"></strong><br>
+                                <small class="text-muted" th:text="'Б:' + ${d.proteins} + ' Ж:' + ${d.fats} + ' У:' + ${d.carbs}"></small>
+                            </td>
+                            <td><strong th:text="${d.price} + ' ₽'"></strong></td>
+                            <td><span class="badge bg-warning text-dark" th:text="${d.rating}"></span></td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <a th:href="@{/(tab='dish', selectedDishId=${d.id})}" class="btn btn-outline-primary btn-sm">Подробнее</a>
+                                    <form method="post" action="/ui/cart/add">
+                                        <input type="hidden" name="dishId" th:value="${d.id}">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn btn-success btn-sm">В корзину</button>
+                                    </form>
+                                    <form method="post" action="/ui/favorites/toggle">
+                                        <input type="hidden" name="dishId" th:value="${d.id}">
+                                        <input type="hidden" name="returnTab" value="catalog">
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm">В избранное</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${activeTab == 'dish' and selectedDish != null}" class="card shadow-sm">
+            <div class="card-body">
+                <a th:href="@{/(tab='catalog')}" class="btn btn-outline-secondary btn-sm mb-3">← Назад</a>
+                <div class="row g-4">
+                    <div class="col-12 col-md-4">
+                        <img th:src="${selectedDish.imageUrl}" alt="Фото" class="dish-detail-img">
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <h4 th:text="${selectedDish.name} + ' — ' + ${selectedDish.price} + ' ₽'"></h4>
+                        <p class="mb-1">
+                            <strong>Точка питания:</strong> <span th:text="${selectedDish.canteenName}"></span>
+                            (<span th:text="${selectedDish.canteenBuilding}"></span>, <span th:text="${selectedDish.canteenOpeningHours}"></span>)
+                        </p>
+                        <p class="mb-2"><strong>Состав:</strong> <span th:text="${selectedDish.composition}"></span></p>
+                        <p class="mb-3">
+                            <strong>Пищевая ценность:</strong> Вес: <strong th:text="${selectedDish.weightGrams} + ' г'"></strong> |
+                            На порцию: <strong th:text="${selectedDish.calories} + ' ккал'"></strong> |
+                            На 100 г: <strong th:text="${selectedDish.caloriesPer100g} + ' ккал'"></strong> |
+                            Белки: <span th:text="${selectedDish.proteins}"></span> г,
+                            Жиры: <span th:text="${selectedDish.fats}"></span> г,
+                            Углеводы: <span th:text="${selectedDish.carbs}"></span> г
+                        </p>
+
+                        <form method="post" action="/ui/cart/add" class="row g-2 align-items-center bg-light p-3 border rounded">
+                            <input type="hidden" name="dishId" th:value="${selectedDish.id}">
+                            <div class="col-auto">
+                                <label class="col-form-label small fw-bold">Порций:</label>
+                            </div>
+                            <div class="col-auto">
+                                <input type="number" name="quantity" value="1" min="1" max="10" class="form-control form-control-sm" style="width: 70px;">
+                            </div>
+                            <div class="col-12 col-sm-auto flex-grow-1">
+                                <input type="text" name="specialRequest" class="form-control form-control-sm" placeholder="Пожелание к блюду">
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-success btn-sm">В корзину</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+                <h5>Отзывы</h5>
+                <ul class="list-group mb-3">
+                    <li th:if="${dishReviews.isEmpty()}" class="list-group-item text-muted">Отзывов пока нет.</li>
+                    <li th:each="r : ${dishReviews}" class="list-group-item">
+                        <strong th:text="${r.userFullName} + ' (' + ${r.rating} + '/5): '"></strong>
+                        <span th:text="${r.comment}"></span>
+                        <div th:if="${r.vendorReply != null}" class="text-success small mt-1">
+                            <em>Ответ: <span th:text="${r.vendorReply}"></span></em>
+                        </div>
+                    </li>
+                </ul>
+
+                <form method="post" action="/ui/reviews/add" class="row g-2">
+                    <input type="hidden" name="dishId" th:value="${selectedDish.id}">
+                    <div class="col-12 col-sm-3">
+                        <select name="rating" class="form-select form-select-sm">
+                            <option value="5">5 — Отлично</option>
+                            <option value="4">4 — Хорошо</option>
+                            <option value="3">3 — Нормально</option>
+                            <option value="2">2 — Плохо</option>
+                            <option value="1">1 — Ужасно</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <input type="text" name="comment" class="form-control form-control-sm" placeholder="Ваш отзыв" required>
+                    </div>
+                    <div class="col-12 col-sm-3">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Отправить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${activeTab == 'cart'}" class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Корзина</h5>
+
+                <div th:if="${cart.items.isEmpty()}">
+                    <p class="text-muted">Корзина пуста.</p>
+                    <a th:href="@{/(tab='catalog')}" class="btn btn-success btn-sm">Перейти в меню</a>
+                </div>
+
+                <div th:if="${!cart.items.isEmpty()}">
+                    <div class="alert alert-secondary py-2 small">
+                        <strong>Точка питания:</strong> <span th:text="${cart.canteenName} + ' (' + ${cart.canteenBuilding} + ')'"></span> |
+                        <strong>Итого:</strong> <strong th:text="${cart.totalAmount} + ' ₽'"></strong> |
+                        <strong>Калорийность:</strong> <span th:text="${cart.totalCalories} + ' ккал'"></span> |
+                        <strong>Время готовки:</strong> ~<span th:text="${cart.estimatedPrepMinutes}"></span> мин.
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Блюдо</th>
+                                <th>Цена</th>
+                                <th>Кол-во</th>
+                                <th>Сумма</th>
+                                <th>Комментарий</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${cart.items}"
+                                th:classappend="${!item.isAvailable ? 'table-secondary text-muted' : ''}">
+                                <td>
+                                    <strong th:text="${item.dishName}"></strong>
+                                    <span th:if="${!item.isAvailable}" class="badge bg-danger ms-2">Закончилось</span>
+                                </td>
+                                <td th:text="${item.unitPrice} + ' ₽'"></td>
+                                <td th:text="${item.quantity}"></td>
+                                <td>
+                                    <strong th:if="${item.isAvailable}" th:text="${item.subtotalPrice} + ' ₽'"></strong>
+                                    <span th:if="${!item.isAvailable}" class="small text-danger">—</span>
+                                </td>
+                                <td th:text="${item.specialRequest != null ? item.specialRequest : '-'}"></td>
+                                <td>
+                                    <div th:if="${item.isAvailable}" class="d-inline">
+                                        <form method="post" action="/ui/cart/update" class="d-inline">
+                                            <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                            <input type="hidden" name="quantity" th:value="${item.quantity + 1}">
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm">+1</button>
+                                        </form>
+                                        <form method="post" action="/ui/cart/update" class="d-inline">
+                                            <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                            <input type="hidden" name="quantity" th:value="${item.quantity - 1}">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">-1</button>
+                                        </form>
+                                    </div>
+                                    <form th:if="${!item.isAvailable}" method="post" action="/ui/cart/update" class="d-inline">
+                                        <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                        <input type="hidden" name="quantity" value="0">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Убрать</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <form method="post" action="/ui/cart/clear" class="mb-4">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Очистить корзину</button>
+                    </form>
+
+                    <div th:if="${cart.availableItemsCount == 0}" class="alert alert-warning">
+                        Выбранные блюда закончились. Добавьте другие позиции из меню для оформления заказа.
+                    </div>
+
+                    <form th:if="${cart.availableItemsCount > 0}" method="post" action="/ui/orders/checkout" class="bg-light p-3 border rounded">
+                        <h6>Оформление заказа</h6>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold">Время получения</label>
+                                <select name="pickupTimeSlot" class="form-select form-select-sm">
+                                    <option th:each="s : ${cart.availableTimeSlots}" th:value="${s}" th:text="${s}"></option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold">Комментарий к заказу</label>
+                                <input type="text" name="comment" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-success">Оформить заказ</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${activeTab == 'orders'}">
+
+            <div th:if="${tracking != null}" id="tracking-card" class="card shadow-sm mb-3 border-success">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        Заказ <span class="text-success" th:text="${tracking.orderNumber}"></span> —
+                        <span class="badge bg-success" th:text="${tracking.currentStatusDisplayName}"></span>
+                    </h5>
+
+                    <div class="progress my-2" style="height: 16px;">
+                        <div class="progress-bar bg-success" role="progressbar"
+                             th:style="'width:' + ${tracking.progressPercent} + '%;'"
+                             th:text="${tracking.progressPercent} + '%'"></div>
+                    </div>
+
+                    <p class="mb-1 fw-bold" th:text="${tracking.statusHeadline}"></p>
+                    <p class="small text-muted mb-3">
+                        Точка питания: <strong th:text="${tracking.canteenName}"></strong> (<span th:text="${tracking.canteenLocation}"></span>) |
+                        Время получения: <strong th:text="${tracking.pickupTimeSlot}"></strong>
+                    </p>
+
+                    <div class="row g-2 mb-3">
+                        <div th:each="st : ${tracking.steps}" class="col-6 col-md-3">
+                            <div class="p-2 border rounded small"
+                                 th:classappend="${st.current ? 'border-success bg-success-subtle' : ''}">
+                                <strong th:text="${st.title}"></strong><br>
+                                <span class="text-muted" th:text="${st.completed ? 'Выполнено' : 'Ожидание'}"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form th:if="${!tracking.isPaid}" method="post" action="/ui/payments/pay"
+                          class="row g-2 align-items-center bg-warning-subtle p-3 border border-warning rounded">
+                        <input type="hidden" name="orderId" th:value="${tracking.orderId}">
+                        <div class="col-auto">
+                            <strong>Оплата заказа <span th:text="${tracking.orderNumber}"></span>:</strong>
+                        </div>
+                        <div class="col-auto">
+                            <select name="paymentMethod" class="form-select form-select-sm">
+                                <option value="SBP">СБП</option>
+                                <option value="CAMPUS_CARD">Кампусная карта</option>
+                                <option value="BANK_CARD">Банковская карта</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-success btn-sm">Оплатить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">История заказов</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Номер</th>
+                                <th>Точка питания</th>
+                                <th>Время получения</th>
+                                <th>Состав</th>
+                                <th>Сумма</th>
+                                <th>Статус</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="o : ${studentOrders}"
+                                th:classappend="${tracking != null and tracking.orderId == o.id ? 'table-success' : ''}">
+                                <td><strong th:text="${o.orderNumber}"></strong></td>
+                                <td>
+                                    <span th:text="${o.canteenName}"></span><br>
+                                    <small class="text-muted" th:text="${o.canteenBuilding}"></small>
+                                </td>
+                                <td th:text="${o.pickupTimeSlot}"></td>
+                                <td>
+                                    <div th:each="it : ${o.items}" class="small"
+                                         th:text="${it.dishNameSnapshot} + ' x' + ${it.quantity}"></div>
+                                </td>
+                                <td><strong th:text="${o.totalAmount} + ' ₽'"></strong></td>
+                                <td>
+                                    <span class="badge bg-secondary" th:text="${o.statusDisplayName}"></span><br>
+                                    <small th:text="${o.isPaid ? 'Оплачен' : 'Не оплачен'}"></small>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <a th:href="@{/(tab='orders', trackingOrderId=${o.id})} + '#tracking-card'"
+                                           class="btn btn-sm"
+                                           th:classappend="${tracking != null and tracking.orderId == o.id ? 'btn-success' : 'btn-outline-primary'}"
+                                           th:text="${tracking != null and tracking.orderId == o.id ? 'Выбран' : 'Статус'}">
+                                        </a>
+                                        <form method="post" action="/ui/orders/repeat">
+                                            <input type="hidden" name="orderId" th:value="${o.id}">
+                                            <button type="submit" class="btn btn-outline-success btn-sm">Повторить</button>
+                                        </form>
+                                        <form th:if="${o.status.name() == 'ACCEPTED'}" method="post" action="/ui/orders/cancel">
+                                            <input type="hidden" name="orderId" th:value="${o.id}">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Отменить</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${activeTab == 'favorites'}" class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Избранное</h5>
+                <table class="table align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Фото</th>
+                        <th>Блюдо</th>
+                        <th>Точка питания</th>
+                        <th>Цена / Калории</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${favorites.isEmpty()}">
+                        <td colspan="5" class="text-muted">Список избранного пуст.</td>
+                    </tr>
+                    <tr th:each="fav : ${favorites}"
+                        th:classappend="${!fav.dish.isAvailable ? 'table-secondary text-muted' : ''}">
+                        <td><img th:src="${fav.dish.imageUrl}" alt="Фото" class="dish-thumb"></td>
+                        <td><strong th:text="${fav.dish.name}"></strong></td>
+                        <td th:text="${fav.dish.canteenName}"></td>
+                        <td th:text="${fav.dish.price} + ' ₽ (' + ${fav.dish.calories} + ' ккал)'"></td>
+                        <td>
+                            <form th:if="${fav.dish.isAvailable}" method="post" action="/ui/cart/add" class="d-inline">
+                                <input type="hidden" name="dishId" th:value="${fav.dish.id}">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-success btn-sm">В корзину</button>
+                            </form>
+                            <span th:if="${!fav.dish.isAvailable}" class="badge bg-secondary me-1">Закончилось</span>
+
+                            <form method="post" action="/ui/favorites/toggle" class="d-inline">
+                                <input type="hidden" name="dishId" th:value="${fav.dish.id}">
+                                <input type="hidden" name="returnTab" value="favorites">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${currentUser != null and currentUser.role.name() == 'VENDOR'}">
+
+        <div th:if="${!vendorCanteen.isVerified}" class="alert alert-warning d-flex align-items-center justify-content-between">
+            <div>
+                Точка питания «<span th:text="${vendorCanteen.name}"></span>» ожидает подтверждения администратором.
+            </div>
+            <span class="badge bg-warning text-dark">На проверке</span>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <strong class="fs-5" th:text="${vendorCanteen.name}"></strong>
+                    <span class="badge ms-1"
+                          th:classappend="${vendorCanteen.isVerified ? 'bg-success' : 'bg-warning text-dark'}"
+                          th:text="${vendorCanteen.isVerified ? 'Подтверждена' : 'На проверке'}"></span>
+                    <span class="badge ms-1"
+                          th:classappend="${vendorCanteen.isOpen ? 'bg-primary' : 'bg-secondary'}"
+                          th:text="${vendorCanteen.isOpen ? 'Открыто' : 'Закрыто'}"></span>
+                    <div class="small text-muted" th:text="${vendorCanteen.building} + ', ' + ${vendorCanteen.floor} + ' этаж (' + ${vendorCanteen.openingHours} + ')'"></div>
+                </div>
+
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'vendor_orders' ? 'active' : ''}"
+                           th:href="@{/(tab='vendor_orders')}">Заказы</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'vendor_stats' ? 'active' : ''}"
+                           th:href="@{/(tab='vendor_stats')}">Статистика</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'vendor_menu' ? 'active' : ''}"
+                           th:href="@{/(tab='vendor_menu')}">Меню</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'vendor_reviews' ? 'active' : ''}"
+                           th:href="@{/(tab='vendor_reviews')}">Отзывы</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'notifications' ? 'active' : ''}"
+                           th:href="@{/(tab='notifications')}">Уведомления (<span th:text="${unreadCount}"></span>)</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'profile' ? 'active' : ''}"
+                           th:href="@{/(tab='profile')}">Профиль</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div th:if="${activeTab == 'vendor_orders'}" class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Текущие заказы</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Номер</th>
+                            <th>Заказчик</th>
+                            <th>Время получения</th>
+                            <th>Состав</th>
+                            <th>Статус</th>
+                            <th>Изменить статус</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="o : ${vendorOrders}">
+                            <td><strong th:text="${o.orderNumber}"></strong></td>
+                            <td th:text="${o.userFullName} + ' (' + ${o.userStudentGroup} + ')'"></td>
+                            <td><strong th:text="${o.pickupTimeSlot}"></strong></td>
+                            <td>
+                                <div th:each="it : ${o.items}" class="small">
+                                    <span th:text="${it.dishNameSnapshot} + ' x' + ${it.quantity}"></span>
+                                    <em th:if="${it.specialRequest != null}" th:text="' (' + ${it.specialRequest} + ')'"></em>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-primary" th:text="${o.statusDisplayName}"></span></td>
+                            <td>
+                                <form method="post" action="/ui/vendor/status" class="d-flex gap-1">
+                                    <input type="hidden" name="orderId" th:value="${o.id}">
+                                    <select name="status" class="form-select form-select-sm">
+                                        <option value="COOKING">Готовится</option>
+                                        <option value="READY">Готов к выдаче</option>
+                                        <option value="COMPLETED">Выдан</option>
+                                        <option value="CANCELLED">Отменён</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-success btn-sm">Сохранить</button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${activeTab == 'vendor_stats' and vendorAnalytics != null}" class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Статистика продаж</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light border rounded">
+                            <small class="text-muted">Выручка</small>
+                            <h4 class="mb-0" th:text="${vendorAnalytics.totalRevenue} + ' ₽'"></h4>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light border rounded">
+                            <small class="text-muted">Средний чек</small>
+                            <h4 class="mb-0" th:text="${vendorAnalytics.averageOrderCheck} + ' ₽'"></h4>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light border rounded">
+                            <small class="text-muted">Всего заказов</small>
+                            <h4 class="mb-0" th:text="${vendorAnalytics.totalOrders}"></h4>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 bg-light border rounded">
+                            <small class="text-muted">Активных</small>
+                            <h4 class="mb-0" th:text="${vendorAnalytics.activeOrders}"></h4>
+                        </div>
+                    </div>
+                </div>
+
+                <h6>Популярные блюда</h6>
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Блюдо</th>
+                        <th>Категория</th>
+                        <th>Продано</th>
+                        <th>Выручка</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="top : ${vendorAnalytics.topDishes}">
+                        <td th:text="${top.dishName}"></td>
+                        <td th:text="${top.categoryName}"></td>
+                        <td th:text="${top.totalPortionsSold} + ' шт.'"></td>
+                        <td th:text="${top.totalRevenue} + ' ₽'"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div th:if="${activeTab == 'vendor_menu'}" class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Меню</h5>
+
+                <div th:if="${editingDish != null}" class="bg-warning-subtle border border-warning rounded p-3 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">
+                            Редактирование: <strong th:text="${editingDish.name}"></strong>
+                        </h6>
+                        <a th:href="@{/(tab='vendor_menu')}" class="btn btn-outline-secondary btn-sm">Отмена</a>
+                    </div>
+
+                    <form method="post" action="/ui/vendor/dish-update" enctype="multipart/form-data" class="row g-2">
+                        <input type="hidden" name="dishId" th:value="${editingDish.id}">
+                        <input type="hidden" name="imageUrl" th:value="${editingDish.imageUrl}">
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small mb-1 fw-bold">Название</label>
+                            <input type="text" name="name" class="form-control form-control-sm" th:value="${editingDish.name}" required>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small mb-1 fw-bold">Категория</label>
+                            <select name="categoryId" class="form-select form-select-sm">
+                                <option th:each="cat : ${categories}" th:value="${cat.id}"
+                                        th:selected="${cat.id == editingDish.categoryId}" th:text="${cat.name}"></option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label small mb-1 fw-bold">Цена (₽)</label>
+                            <input type="number" step="0.01" name="price" class="form-control form-control-sm" th:value="${editingDish.price}" required>
+                        </div>
+                        <div class="col-6 col-md-1">
+                            <label class="form-label small mb-1 fw-bold">Вес (г)</label>
+                            <input type="number" name="weightGrams" class="form-control form-control-sm" th:value="${editingDish.weightGrams}" required>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label small mb-1 fw-bold">Ккал</label>
+                            <input type="number" name="calories" class="form-control form-control-sm" th:value="${editingDish.calories}" required>
+                        </div>
+
+                        <div class="col-4 col-md-2">
+                            <label class="form-label small mb-1">Белки (г)</label>
+                            <input type="number" step="0.1" name="proteins" class="form-control form-control-sm" th:value="${editingDish.proteins}" required>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <label class="form-label small mb-1">Жиры (г)</label>
+                            <input type="number" step="0.1" name="fats" class="form-control form-control-sm" th:value="${editingDish.fats}" required>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <label class="form-label small mb-1">Углеводы (г)</label>
+                            <input type="number" step="0.1" name="carbs" class="form-control form-control-sm" th:value="${editingDish.carbs}" required>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label small mb-1">Готовка (мин)</label>
+                            <input type="number" name="prepTimeMinutes" class="form-control form-control-sm" th:value="${editingDish.prepTimeMinutes}" required>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small mb-1">Новое фото</label>
+                            <input type="file" name="imageFile" class="form-control form-control-sm" accept="image/png, image/jpeg, image/webp">
+                        </div>
+
+                        <div class="col-12 col-md-9">
+                            <label class="form-label small mb-1 fw-bold">Состав</label>
+                            <input type="text" name="composition" class="form-control form-control-sm" th:value="${editingDish.composition}" required>
+                        </div>
+                        <div class="col-12 col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Фото</th>
+                            <th>Блюдо</th>
+                            <th>Категория</th>
+                            <th>Вес / КБЖУ</th>
+                            <th>Цена</th>
+                            <th>Наличие</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="d : ${vendorDishes}"
+                            th:classappend="${editingDish != null and editingDish.id == d.id ? 'table-warning' : ''}">
+                            <td><img th:src="${d.imageUrl}" alt="Фото" class="dish-thumb"></td>
+                            <td>
+                                <strong th:text="${d.name}"></strong><br>
+                                <small class="text-muted" th:text="${d.composition}"></small>
+                            </td>
+                            <td th:text="${d.categoryName}"></td>
+                            <td>
+                                <span th:text="${d.weightGrams} + ' г | '"></span>
+                                <strong th:text="${d.calories} + ' ккал'"></strong><br>
+                                <small class="text-muted" th:text="'Б:' + ${d.proteins} + ' Ж:' + ${d.fats} + ' У:' + ${d.carbs}"></small>
+                            </td>
+                            <td><strong th:text="${d.price} + ' ₽'"></strong></td>
+                            <td>
+                                <span class="badge" th:classappend="${d.isAvailable ? 'bg-success' : 'bg-secondary'}"
+                                      th:text="${d.isAvailable ? 'В наличии' : 'Стоп-лист'}"></span>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <a th:href="@{/(tab='vendor_menu', editingDishId=${d.id})}"
+                                       class="btn btn-outline-primary btn-sm">Изменить</a>
+
+                                    <form method="post" action="/ui/vendor/dish-availability">
+                                        <input type="hidden" name="dishId" th:value="${d.id}">
+                                        <input type="hidden" name="available" th:value="${!d.isAvailable}">
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm"
+                                                th:text="${d.isAvailable ? 'В стоп-лист' : 'В продажу'}"></button>
+                                    </form>
+
+                                    <form method="post" action="/ui/vendor/dish-delete">
+                                        <input type="hidden" name="dishId" th:value="${d.id}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Удалить</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <form method="post" action="/ui/vendor/dish-create" enctype="multipart/form-data"
+                      class="row g-2 bg-light p-3 border rounded mt-3">
+                    <h6>Новое блюдо</h6>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small mb-1">Название</label>
+                        <input type="text" name="name" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small mb-1">Категория</label>
+                        <select name="categoryId" class="form-select form-select-sm">
+                            <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small mb-1">Цена (₽)</label>
+                        <input type="number" step="0.01" name="price" class="form-control form-control-sm" value="220" required>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small mb-1">Вес (г)</label>
+                        <input type="number" name="weightGrams" class="form-control form-control-sm" value="300" required>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small mb-1">Калории (ккал)</label>
+                        <input type="number" name="calories" class="form-control form-control-sm" value="320" required>
+                    </div>
+
+                    <div class="col-4 col-md-2">
+                        <label class="form-label small mb-1">Белки (г)</label>
+                        <input type="number" step="0.1" name="proteins" class="form-control form-control-sm" value="18.0" required>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <label class="form-label small mb-1">Жиры (г)</label>
+                        <input type="number" step="0.1" name="fats" class="form-control form-control-sm" value="10.0" required>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <label class="form-label small mb-1">Углеводы (г)</label>
+                        <input type="number" step="0.1" name="carbs" class="form-control form-control-sm" value="28.0" required>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small mb-1">Фото</label>
+                        <input type="file" name="imageFile" class="form-control form-control-sm" accept="image/png, image/jpeg, image/webp" required>
+                    </div>
+
+                    <div class="col-12 col-md-10">
+                        <label class="form-label small mb-1">Состав</label>
+                        <input type="text" name="composition" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-12 col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-success btn-sm w-100">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${activeTab == 'vendor_reviews'}" class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Отзывы</h5>
+                <table class="table align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Блюдо</th>
+                        <th>Автор</th>
+                        <th>Отзыв</th>
+                        <th>Ответ</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${vendorReviews}">
+                        <td><strong th:text="${r.dishName}"></strong></td>
+                        <td th:text="${r.userFullName} + ' (' + ${r.rating} + '/5)'"></td>
+                        <td th:text="${r.comment}"></td>
+                        <td th:text="${r.vendorReply != null ? r.vendorReply : '—'}"></td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <form method="post" action="/ui/vendor/review-reply" class="d-flex gap-1">
+                                    <input type="hidden" name="reviewId" th:value="${r.id}">
+                                    <input type="text" name="replyText" class="form-control form-control-sm" placeholder="Ответ" required>
+                                    <button type="submit" class="btn btn-primary btn-sm">Ответить</button>
+                                </form>
+                                <form method="post" action="/ui/vendor/review-delete">
+                                    <input type="hidden" name="reviewId" th:value="${r.id}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Удалить</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}">
+
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${activeTab == 'admin_dashboard' ? 'active fw-bold' : ''}"
+                   th:href="@{/(tab='admin_dashboard')}">Управление и статистика</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${activeTab == 'profile' ? 'active fw-bold' : ''}"
+                   th:href="@{/(tab='profile')}">Профиль</a>
+            </li>
+        </ul>
+
+        <div th:if="${activeTab == 'admin_dashboard' and analytics != null}">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Статистика по кампусу</h5>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light border rounded">
+                                <small class="text-muted">Выручка</small>
+                                <h4 class="mb-0" th:text="${analytics.totalRevenue} + ' ₽'"></h4>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light border rounded">
+                                <small class="text-muted">Средний чек</small>
+                                <h4 class="mb-0" th:text="${analytics.averageOrderCheck} + ' ₽'"></h4>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light border rounded">
+                                <small class="text-muted">Заказов всего / В работе</small>
+                                <h4 class="mb-0" th:text="${analytics.totalOrders} + ' / ' + ${analytics.activeOrders}"></h4>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light border rounded">
+                                <small class="text-muted">Блюд в меню</small>
+                                <h4 class="mb-0" th:text="${analytics.totalDishes}"></h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6>Показатели точек питания</h6>
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Точка питания</th>
+                            <th>Активных заказов</th>
+                            <th>Загрузка</th>
+                            <th>Нагрузка</th>
+                            <th>Выручка</th>
+                            <th>Рейтинг</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="w : ${analytics.canteenWorkloads}">
+                            <td>
+                                <strong th:text="${w.canteenName}"></strong><br>
+                                <small class="text-muted" th:text="${w.building}"></small>
+                            </td>
+                            <td th:text="${w.activeQueueCount}"></td>
+                            <td><strong th:text="${w.workloadPercent} + '%'"></strong></td>
+                            <td><span class="badge bg-info text-dark" th:text="${w.workloadLevel}"></span></td>
+                            <td><strong th:text="${w.revenue} + ' ₽'"></strong></td>
+                            <td th:text="${w.rating}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Точки питания</h5>
+
+                    <div th:if="${editingCanteen != null}" class="bg-warning-subtle border border-warning rounded p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">Редактирование точки питания</h6>
+                            <a th:href="@{/(tab='admin_dashboard')}" class="btn btn-outline-secondary btn-sm">Отмена</a>
+                        </div>
+                        <form method="post" action="/ui/admin/canteen/update" class="row g-2">
+                            <input type="hidden" name="canteenId" th:value="${editingCanteen.id}">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small mb-1">Название</label>
+                                <input type="text" name="name" class="form-control form-control-sm" th:value="${editingCanteen.name}" required>
+                            </div>
+                            <div class="col-8 col-md-4">
+                                <label class="form-label small mb-1">Корпус</label>
+                                <input type="text" name="building" class="form-control form-control-sm" th:value="${editingCanteen.building}" required>
+                            </div>
+                            <div class="col-4 col-md-1">
+                                <label class="form-label small mb-1">Этаж</label>
+                                <input type="number" name="floor" class="form-control form-control-sm" th:value="${editingCanteen.floor}" min="1" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label small mb-1">Часы работы</label>
+                                <input type="text" name="openingHours" class="form-control form-control-sm" th:value="${editingCanteen.openingHours}" required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small mb-1">Описание</label>
+                                <input type="text" name="description" class="form-control form-control-sm" th:value="${editingCanteen.description}">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small mb-1">URL фото</label>
+                                <input type="text" name="imageUrl" class="form-control form-control-sm" th:value="${editingCanteen.imageUrl}" required>
+                            </div>
+                            <div class="col-6 col-md-1 d-flex align-items-end">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="isOpen" value="true" th:checked="${editingCanteen.isOpen}">
+                                    <label class="form-check-label small">Открыта</label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-1 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">Сохранить</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Точка питания</th>
+                                <th>Корпус / Часы работы</th>
+                                <th>Менеджер</th>
+                                <th>Статус</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="c : ${canteens}">
+                                <td>
+                                    <strong th:text="${c.name}"></strong><br>
+                                    <small class="text-muted" th:text="${c.description}"></small>
+                                </td>
+                                <td>
+                                    <span th:text="${c.building} + ' (' + ${c.floor} + ' эт.)'"></span><br>
+                                    <small class="text-muted" th:text="${c.openingHours}"></small>
+                                </td>
+                                <td th:text="${c.managerName != null ? c.managerName : '—'}"></td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${c.isVerified ? 'bg-success' : 'bg-warning text-dark'}"
+                                          th:text="${c.isVerified ? 'Подтверждена' : 'На проверке'}"></span>
+                                    <span class="badge ms-1"
+                                          th:classappend="${c.isOpen ? 'bg-primary' : 'bg-secondary'}"
+                                          th:text="${c.isOpen ? 'Открыта' : 'Закрыта'}"></span>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <form method="post" action="/ui/admin/canteen/verify">
+                                            <input type="hidden" name="canteenId" th:value="${c.id}">
+                                            <input type="hidden" name="verified" th:value="${!c.isVerified}">
+                                            <button type="submit" class="btn btn-sm"
+                                                    th:classappend="${c.isVerified ? 'btn-outline-warning' : 'btn-success'}"
+                                                    th:text="${c.isVerified ? 'Отозвать' : 'Подтвердить'}"></button>
+                                        </form>
+                                        <a th:href="@{/(tab='admin_dashboard', editingCanteenId=${c.id})}"
+                                           class="btn btn-outline-primary btn-sm">Изменить</a>
+                                        <form method="post" action="/ui/admin/canteen/delete">
+                                            <input type="hidden" name="canteenId" th:value="${c.id}">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Удалить</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${currentUser != null and currentUser.role.name() != 'ADMIN' and activeTab == 'notifications'}" class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Уведомления</h5>
+            <table class="table align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>Заказ</th>
+                    <th>Сообщение</th>
+                    <th>Статус</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${notifications.isEmpty()}">
+                    <td colspan="4" class="text-muted">Уведомлений нет.</td>
+                </tr>
+                <tr th:each="n : ${notifications}">
+                    <td><strong th:text="${n.orderNumber != null ? n.orderNumber : '—'}"></strong></td>
+                    <td>
+                        <strong th:text="${n.title}"></strong><br>
+                        <span th:text="${n.message}"></span>
+                    </td>
+                    <td>
+                        <span class="badge" th:classappend="${n.isRead ? 'bg-secondary' : 'bg-success'}"
+                              th:text="${n.isRead ? 'Прочитано' : 'Новое'}"></span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <form th:if="${!n.isRead}" method="post" action="/ui/notifications/read">
+                                <input type="hidden" name="notificationId" th:value="${n.id}">
+                                <button type="submit" class="btn btn-outline-primary btn-sm">Прочитано</button>
+                            </form>
+                            <form method="post" action="/ui/notifications/delete">
+                                <input type="hidden" name="notificationId" th:value="${n.id}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Удалить</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:if="${currentUser != null and activeTab == 'profile'}" class="row g-3">
+        <div class="col-12 col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Личные данные</h5>
+                    <form method="post" action="/ui/profile/update" class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Email</label>
+                            <input type="text" class="form-control form-control-sm" th:value="${currentUser.email}" disabled>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">ФИО</label>
+                            <input type="text" name="fullName" class="form-control form-control-sm" th:value="${currentUser.fullName}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Телефон</label>
+                            <input type="text" name="phone" class="form-control form-control-sm" th:value="${currentUser.phone}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Учебная группа / Подразделение</label>
+                            <input type="text" name="studentGroup" class="form-control form-control-sm" th:value="${currentUser.studentGroup}">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success btn-sm">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${currentUser.role.name() == 'VENDOR' and vendorCanteen != null}" class="col-12 col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Настройки точки питания</h5>
+                        <span class="badge"
+                              th:classappend="${vendorCanteen.isVerified ? 'bg-success' : 'bg-warning text-dark'}"
+                              th:text="${vendorCanteen.isVerified ? 'Подтверждена' : 'На проверке'}"></span>
+                    </div>
+
+                    <form method="post" action="/ui/vendor/canteen-update" class="row g-2">
+                        <div class="col-12 col-md-8">
+                            <label class="form-label small fw-bold mb-1">Название</label>
+                            <input type="text" name="name" class="form-control form-control-sm" th:value="${vendorCanteen.name}" required>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold mb-1">Часы работы</label>
+                            <input type="text" name="openingHours" class="form-control form-control-sm" th:value="${vendorCanteen.openingHours}" required>
+                        </div>
+                        <div class="col-9">
+                            <label class="form-label small fw-bold mb-1">Корпус</label>
+                            <input type="text" name="building" class="form-control form-control-sm" th:value="${vendorCanteen.building}" required>
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label small fw-bold mb-1">Этаж</label>
+                            <input type="number" name="floor" class="form-control form-control-sm" th:value="${vendorCanteen.floor}" min="1" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold mb-1">Описание</label>
+                            <input type="text" name="description" class="form-control form-control-sm" th:value="${vendorCanteen.description}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold mb-1">URL фото</label>
+                            <input type="text" name="imageUrl" class="form-control form-control-sm" th:value="${vendorCanteen.imageUrl}" required>
+                        </div>
+                        <div class="col-12 my-2">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="isOpen" value="true" id="canteenOpenSwitch" th:checked="${vendorCanteen.isOpen}">
+                                <label class="form-check-label small fw-bold" for="canteenOpenSwitch">Принимать заказы</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script th:if="${currentUser != null}" th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+        const userId = /*[[${currentUser.id}]]*/ 1;
+        const role = /*[[${currentUser.role.name()}]]*/ 'STUDENT';
+
+        fetch('/api/v1/auth/users/' + userId)
+            .then(r => r.json())
+            .then(u => console.log('[API] Профиль пользователя:', u));
+
+        if (role === 'STUDENT') {
+            fetch('/api/v1/dishes?onlyAvailable=true')
+                .then(r => r.json())
+                .then(d => console.log('[API] Каталог блюд:', d.length));
+
+            fetch('/api/v1/cart?userId=' + userId)
+                .then(r => r.json())
+                .then(c => console.log('[API] Корзина:', c));
+
+            fetch('/api/v1/notifications?userId=' + userId)
+                .then(r => r.json())
+                .then(n => console.log('[API] Уведомления:', n.length));
+        } else {
+            fetch('/api/v1/analytics/dashboard')
+                .then(r => r.json())
+                .then(a => console.log('[API] Статистика:', a));
+        }
+    });
+</script>
+</body>
+</html>
+</body>
+</html>

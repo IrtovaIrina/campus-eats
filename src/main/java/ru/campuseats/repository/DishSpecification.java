@@ -77,6 +77,10 @@ public final class DishSpecification {
 
     private static Specification<Dish> byOnlyAvailable(Boolean onlyAvailable) {
         return !Boolean.TRUE.equals(onlyAvailable) ? null :
-                (root, query, cb) -> cb.isTrue(root.get("isAvailable"));
+                (root, query, cb) -> cb.and(
+                        cb.isTrue(root.get("isAvailable")),
+                        cb.isTrue(root.get("canteen").get("isVerified")),
+                        cb.isTrue(root.get("canteen").get("isOpen"))
+                );
     }
 }

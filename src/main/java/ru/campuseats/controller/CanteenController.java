@@ -8,8 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.campuseats.dto.CanteenDto;
 import ru.campuseats.dto.CreateCanteenRequestDto;
-import ru.campuseats.dto.CreatePickupPointRequestDto;
-import ru.campuseats.dto.PickupPointDto;
 import ru.campuseats.service.CanteenService;
 
 import java.util.List;
@@ -17,13 +15,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/canteens")
 @RequiredArgsConstructor
-@Tag(name = "02. Точки питания и Окна выдачи", description = "Выбор столовой кампуса и окна экспресс-выдачи заказов без очереди")
+@Tag(name = "Точки питания кампуса", description = "Управление точками питания кампуса и подтверждение официального статуса")
 public class CanteenController {
 
     private final CanteenService canteenService;
 
     @GetMapping
-    @Operation(summary = "Получить список всех точек питания кампуса (с сортировкой по рейтингу)")
+    @Operation(summary = "Получить список всех точек питания кампуса")
     public List<CanteenDto> getAllCanteens(
             @RequestParam(defaultValue = "false") boolean onlyOpen
     ) {
@@ -36,12 +34,6 @@ public class CanteenController {
         return canteenService.getCanteenById(id);
     }
 
-    @GetMapping("/{canteenId}/pickup-points")
-    @Operation(summary = "Получить активные окна экспресс-выдачи для выбранной точки питания")
-    public List<PickupPointDto> getPickupPoints(@PathVariable Long canteenId) {
-        return canteenService.getPickupPointsForCanteen(canteenId);
-    }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Создать новую точку питания (для роли ADMIN)")
@@ -49,13 +41,29 @@ public class CanteenController {
         return canteenService.createCanteen(request);
     }
 
-    @PostMapping("/{canteenId}/pickup-points")
-    @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Добавить окно экспресс-выдачи в столовую (для ролей VENDOR / ADMIN)")
-    public PickupPointDto addPickupPoint(
-            @PathVariable Long canteenId,
-            @Valid @RequestBody CreatePickupPointRequestDto request
+    @PutMapping("/{id}")
+    @Operation(summary = "Обновить профиль точки питания (для VENDOR и ADMIN)")
+    public CanteenDto updateCanteen(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateCanteenRequestDto request,
+            @RequestParam(required = false) Boolean isOpen
     ) {
-        return canteenService.addPickupPoint(canteenId, request);
+        return canteenService.updateCanteen(id, request, isOpen);
+    }
+
+    @PatchMapping("/{id}/verify")
+    @Operation(summary = "Подтвердить или отозвать официальный статус точки питания (для роли ADMIN)")
+    public CanteenDto verifyCanteen(
+            @PathVariable Long id,
+            @RequestParam boolean verified
+    ) {
+        return canteenService.verifyCanteen(id, verified);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Удалить точку питания (для роли ADMIN)")
+    public void deleteCanteen(@PathVariable Long id) {
+        canteenService.deleteCanteen(id);
     }
 }

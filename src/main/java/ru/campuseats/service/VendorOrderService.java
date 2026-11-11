@@ -53,7 +53,6 @@ public class VendorOrderService {
         order.setUpdatedAt(LocalDateTime.now());
         FoodOrder savedOrder = foodOrderRepository.save(order);
 
-        // Генерация пуш-уведомления студенту
         generateNotificationForStatusChange(savedOrder, newStatus);
 
         return orderMapper.toResponseDto(savedOrder);
@@ -65,24 +64,24 @@ public class VendorOrderService {
 
         switch (status) {
             case COOKING -> {
-                title = "Заказ готовится 🍳";
-                message = "Повар столовой «" + order.getCanteen().getName() + "» начал приготовление вашего предзаказа #" + order.getOrderNumber() + ".";
+                title = "Заказ готовится";
+                message = "В столовой «" + order.getCanteen().getName() + "» начали готовить ваш заказ #" + order.getOrderNumber() + ".";
             }
             case READY -> {
-                title = "Заказ готов к выдаче! 🎉";
-                message = "Ваш предзаказ #" + order.getOrderNumber() + " ожидает вас в окне «" + order.getPickupPoint().getWindowCode() + "». Приятного аппетита!";
+                title = "Заказ готов к выдаче";
+                message = "Заказ #" + order.getOrderNumber() + " готов к получению в «" + order.getCanteen().getName() + "».";
             }
             case COMPLETED -> {
-                title = "Заказ выдан ✓";
-                message = "Предзаказ #" + order.getOrderNumber() + " успешно выдан. Будем рады вашей оценке в разделе отзывов!";
+                title = "Заказ выдан";
+                message = "Заказ #" + order.getOrderNumber() + " выдан.";
             }
             case CANCELLED -> {
-                title = "Заказ отменён ❌";
-                message = "К сожалению, предзаказ #" + order.getOrderNumber() + " был отменён столовой. Средства возвращены на ваш счёт.";
+                title = "Заказ отменён";
+                message = "Заказ #" + order.getOrderNumber() + " был отменён.";
             }
             default -> {
-                title = "Статус заказа обновлен";
-                message = "Ваш предзаказ #" + order.getOrderNumber() + " переведен в статус: " + status.getDisplayName();
+                title = "Статус заказа обновлён";
+                message = "Статус заказа #" + order.getOrderNumber() + ": " + status.getDisplayName();
             }
         }
 

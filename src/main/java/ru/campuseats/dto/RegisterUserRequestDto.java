@@ -17,33 +17,37 @@ import ru.campuseats.enums.Role;
 public class RegisterUserRequestDto {
 
     @NotBlank(message = "Укажите ФИО")
-    @Schema(description = "Полное имя")
     private String fullName;
 
     @NotBlank(message = "Укажите email")
     @Email(
             regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
-            message = "Некорректный формат email (пример: a.d.sokolov@campus.ru)"
+            message = "Некорректный формат email (пример: a.d.sokolov@campus.edu)"
     )
-    @Schema(description = "Email")
     private String email;
 
     @NotBlank(message = "Укажите телефон")
     @Pattern(
             regexp = "^(\\+7|8)[\\s\\-]?\\(?\\d{3}\\)?[\\s\\-]?\\d{3}[\\s\\-]?\\d{2}[\\s\\-]?\\d{2}$",
-            message = "Некорректный формат телефона. Пример: +7 (922) 114-55-09 или 89221145509"
+            message = "Некорректный формат телефона. Пример: +7 (922) 114-55-09"
     )
-    @Schema(description = "Телефон")
     private String phone;
 
     @NotBlank(message = "Укажите пароль")
-    @Schema(description = "Пароль")
     private String password;
 
     @NotNull(message = "Выберите роль")
-    @Schema(description = "Роль пользователя")
     private Role role;
 
-    @Schema(description = "Академическая группа (для студентов)")
     private String studentGroup;
+
+    private String canteenName;
+
+    private String canteenBuilding;
+
+    private Integer canteenFloor;
+
+    private String canteenOpeningHours;
+
+    private String canteenDescription;
 }
