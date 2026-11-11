@@ -10,10 +10,9 @@ import ru.campuseats.enums.OrderStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Запрос на перевод заказа в следующий статус")
+@Schema(description = "Запрос на изменение статуса заказа")
 public class UpdateOrderStatusRequestDto {
 
     @NotNull(message = "Укажите новый статус заказа")
-    @Schema(description = "Новый статус заказа (COOKING, READY, COMPLETED, CANCELLED)", example = "COOKING")
     private OrderStatus status;
 }

@@ -24,8 +24,8 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private FoodOrder order;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "dish_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "dish_id", nullable = true)
     private Dish dish;
 
     @Column(nullable = false, length = 150)

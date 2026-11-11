@@ -13,23 +13,20 @@ import ru.campuseats.service.PaymentService;
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
-@Tag(name = "07. Демо-оплата и Бонусы", description = "Проведение демо-оплаты предзаказа (СБП, Кампусная карта, Банковская карта) и расчёт кэшбэка")
+@Tag(name = "Оплата заказов", description = "Демо-оплата заказов и получение чеков")
 public class PaymentController {
 
     private final PaymentService paymentService;
 
     @PostMapping("/pay")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(
-            summary = "Провести демо-оплату оформленного заказа",
-            description = "Поддерживает оплату через СБП, кампусную или банковскую карту, списание бонусов (до 50%) и начисление 5% кэшбэка"
-    )
+    @Operation(summary = "Оплатить оформленный заказ")
     public PaymentReceiptDto payForOrder(@Valid @RequestBody PaymentRequestDto request) {
         return paymentService.processDemoPayment(request);
     }
 
     @GetMapping("/order/{orderId}")
-    @Operation(summary = "Получить электронный чек оплаты по ID заказа")
+    @Operation(summary = "Получить чек оплаты по ID заказа")
     public PaymentReceiptDto getReceiptByOrder(@PathVariable Long orderId) {
         return paymentService.getReceiptByOrderId(orderId);
     }

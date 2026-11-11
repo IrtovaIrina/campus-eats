@@ -34,14 +34,6 @@ public class PaymentTransaction {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amountPaid;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    @Builder.Default
-    private BigDecimal bonusUsed = BigDecimal.ZERO;
-
-    @Column(nullable = false, precision = 10, scale = 2)
-    @Builder.Default
-    private BigDecimal cashbackEarned = BigDecimal.ZERO;
-
     @Column(nullable = false, length = 30)
     @Builder.Default
     private String status = "SUCCESS";

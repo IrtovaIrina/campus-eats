@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import ru.campuseats.enums.Role;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -38,10 +37,6 @@ public class User {
 
     @Column(length = 50)
     private String studentGroup;
-
-    @Column(nullable = false, precision = 10, scale = 2)
-    @Builder.Default
-    private BigDecimal bonusBalance = BigDecimal.ZERO;
 
     @Column(nullable = false)
     @Builder.Default

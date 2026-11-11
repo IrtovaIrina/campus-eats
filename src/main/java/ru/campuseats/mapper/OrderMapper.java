@@ -18,9 +18,6 @@ public interface OrderMapper {
     @Mapping(target = "canteenId", source = "canteen.id")
     @Mapping(target = "canteenName", source = "canteen.name")
     @Mapping(target = "canteenBuilding", source = "canteen.building")
-    @Mapping(target = "pickupPointId", source = "pickupPoint.id")
-    @Mapping(target = "pickupWindowCode", source = "pickupPoint.windowCode")
-    @Mapping(target = "pickupLocationHint", source = "pickupPoint.locationHint")
     @Mapping(target = "statusDisplayName", expression = "java(order.getStatus() != null ? order.getStatus().getDisplayName() : \"\")")
     OrderResponseDto toResponseDto(FoodOrder order);
 
@@ -37,7 +34,6 @@ public interface OrderMapper {
     @Mapping(target = "orderNumber", source = "orderNumber")
     @Mapping(target = "user", source = "user")
     @Mapping(target = "canteen", source = "canteen")
-    @Mapping(target = "pickupPoint", source = "pickupPoint")
     @Mapping(target = "pickupTimeSlot", expression = "java(request.getPickupTimeSlot().trim())")
     @Mapping(target = "comment", expression = "java(request.getComment() != null ? request.getComment().trim() : null)")
     @Mapping(target = "totalAmount", expression = "java(java.math.BigDecimal.ZERO)")
@@ -51,7 +47,6 @@ public interface OrderMapper {
             CheckoutRequestDto request,
             User user,
             Canteen canteen,
-            PickupPoint pickupPoint,
             String orderNumber
     );
 
@@ -80,8 +75,6 @@ public interface OrderMapper {
     @Mapping(target = "statusHeadline", source = "statusHeadline")
     @Mapping(target = "canteenName", source = "order.canteen.name")
     @Mapping(target = "canteenLocation", expression = "java(order.getCanteen().getBuilding() + \" (\" + order.getCanteen().getFloor() + \" этаж)\")")
-    @Mapping(target = "pickupWindowCode", source = "order.pickupPoint.windowCode")
-    @Mapping(target = "pickupLocationHint", source = "order.pickupPoint.locationHint")
     @Mapping(target = "pickupTimeSlot", source = "order.pickupTimeSlot")
     @Mapping(target = "isPaid", source = "order.isPaid")
     @Mapping(target = "canCancel", expression = "java(order.getStatus() == ru.campuseats.enums.OrderStatus.ACCEPTED)")

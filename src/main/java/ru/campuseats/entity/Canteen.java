@@ -46,6 +46,10 @@ public class Canteen {
     @Builder.Default
     private Boolean isOpen = true;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isVerified = true;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "manager_id")
     private User manager;

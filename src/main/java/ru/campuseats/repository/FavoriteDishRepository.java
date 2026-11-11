@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface FavoriteDishRepository extends JpaRepository<FavoriteDish, Long> {
     List<FavoriteDish> findByUserIdOrderByAddedAtDesc(Long userId);
     Optional<FavoriteDish> findByUserIdAndDishId(Long userId, Long dishId);
-    boolean existsByUserIdAndDishId(Long userId, Long dishId);
+    void deleteByDishId(Long dishId);
 }

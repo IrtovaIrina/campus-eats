@@ -10,30 +10,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Пуш-уведомление о статусе заказа")
+@Schema(description = "Уведомление пользователя")
 public class NotificationDto {
 
-    @Schema(description = "ID уведомления", example = "1")
     private Long id;
-
-    @Schema(description = "ID пользователя", example = "1")
     private Long userId;
-
-    @Schema(description = "ID заказа", example = "1")
     private Long orderId;
-
-    @Schema(description = "Номер заказа", example = "CE-101")
     private String orderNumber;
-
-    @Schema(description = "Заголовок уведомления", example = "Заказ готовится 🍳")
     private String title;
-
-    @Schema(description = "Текст пуш-сообщения", example = "Повар столовой начал приготовление вашего предзаказа #CE-101.")
     private String message;
-
-    @Schema(description = "Прочитано ли уведомление", example = "false")
     private Boolean isRead;
-
-    @Schema(description = "Дата и время создания")
     private LocalDateTime createdAt;
 }

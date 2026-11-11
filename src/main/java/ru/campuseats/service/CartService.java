@@ -8,16 +8,13 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.campuseats.dto.AddToCartRequestDto;
 import ru.campuseats.dto.CartItemDto;
 import ru.campuseats.dto.CartSummaryDto;
-import ru.campuseats.dto.PickupPointDto;
 import ru.campuseats.entity.Canteen;
 import ru.campuseats.entity.CartItem;
 import ru.campuseats.entity.Dish;
 import ru.campuseats.entity.User;
 import ru.campuseats.mapper.CartMapper;
-import ru.campuseats.mapper.PickupPointMapper;
 import ru.campuseats.repository.CartItemRepository;
 import ru.campuseats.repository.DishRepository;
-import ru.campuseats.repository.PickupPointRepository;
 import ru.campuseats.repository.UserRepository;
 
 import java.math.BigDecimal;
@@ -33,9 +30,7 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
     private final DishRepository dishRepository;
-    private final PickupPointRepository pickupPointRepository;
     private final CartMapper cartMapper;
-    private final PickupPointMapper pickupPointMapper;
 
     private static final List<String> DEFAULT_PICKUP_SLOTS = List.of(
             "10:15 - 10:30 (Перемена)",
@@ -64,7 +59,7 @@ public class CartService {
 
         if (!Boolean.TRUE.equals(dish.getIsAvailable())) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Блюдо «" + dish.getName() + "» временно в стоп-листе и недоступно для заказа"
+                    HttpStatus.BAD_REQUEST, "Блюдо «" + dish.getName() + "» закончилось и недоступно для заказа"
             );
         }
 
@@ -80,8 +75,7 @@ public class CartService {
                     throw new ResponseStatusException(
                             HttpStatus.CONFLICT,
                             "В корзине уже есть блюда из точки «" + existingCanteen.getName()
-                                    + "». Оформите текущий заказ или очистите корзину перед добавлением блюд из «"
-                                    + dish.getCanteen().getName() + "»."
+                                    + "». Оформите текущий заказ или очистите корзину."
                     );
                 }
             }
@@ -154,17 +148,24 @@ public class CartService {
         List<CartItemDto> itemDtos = cartMapper.toItemDtoList(items);
 
         int totalQty = 0;
+        int availableItemsCount = 0;
         BigDecimal totalAmount = BigDecimal.ZERO;
         int totalCalories = 0;
         double totalProteins = 0.0;
         double totalFats = 0.0;
         double totalCarbs = 0.0;
-        int maxPrepTime = 5;
+        int maxPrepTime = 0;
 
         for (CartItem item : items) {
-            int qty = item.getQuantity();
             Dish d = item.getDish();
+            // Если блюдо в стоп-листе — оно отображается в списке со статусом «Закончилось»,
+            // но НЕ учитывается в итоговой сумме, количестве и калорийности!
+            if (d == null || !Boolean.TRUE.equals(d.getIsAvailable())) {
+                continue;
+            }
 
+            int qty = item.getQuantity();
+            availableItemsCount++;
             totalQty += qty;
             totalAmount = totalAmount.add(d.getPrice().multiply(BigDecimal.valueOf(qty)));
             totalCalories += d.getCalories() * qty;
@@ -177,22 +178,18 @@ public class CartService {
             }
         }
 
-        List<PickupPointDto> pickupPoints = pickupPointMapper.toDtoList(
-                pickupPointRepository.findByCanteenIdAndIsActiveTrueOrderByIdAsc(canteen.getId())
-        );
-
         return cartMapper.toSummaryDto(
                 userId,
                 canteen,
                 itemDtos,
                 totalQty,
+                availableItemsCount,
                 totalAmount.setScale(2, RoundingMode.HALF_UP),
                 totalCalories,
                 roundMacro(totalProteins),
                 roundMacro(totalFats),
                 roundMacro(totalCarbs),
                 maxPrepTime,
-                pickupPoints,
                 DEFAULT_PICKUP_SLOTS
         );
     }

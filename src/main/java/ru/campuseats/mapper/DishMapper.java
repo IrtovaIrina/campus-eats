@@ -3,11 +3,13 @@ package ru.campuseats.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.campuseats.dto.*;
+import ru.campuseats.entity.Canteen;
 import ru.campuseats.entity.Category;
 import ru.campuseats.entity.DietaryTag;
 import ru.campuseats.entity.Dish;
 
 import java.util.List;
+import java.util.Set;
 
 @Mapper(componentModel = "spring")
 public interface DishMapper {
@@ -31,13 +33,15 @@ public interface DishMapper {
     DishDetailDto toDetailDto(Dish dish);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "canteen", ignore = true)
-    @Mapping(target = "category", ignore = true)
-    @Mapping(target = "dietaryTags", ignore = true)
+    @Mapping(target = "name", source = "request.name")
+    @Mapping(target = "imageUrl", source = "request.imageUrl")
+    @Mapping(target = "canteen", source = "canteen")
+    @Mapping(target = "category", source = "category")
+    @Mapping(target = "dietaryTags", source = "tags")
     @Mapping(target = "isAvailable", constant = "true")
     @Mapping(target = "rating", constant = "5.0")
     @Mapping(target = "prepTimeMinutes", expression = "java(request.getPrepTimeMinutes() != null ? request.getPrepTimeMinutes() : 10)")
-    Dish toEntity(CreateDishRequestDto request);
+    Dish toEntity(CreateDishRequestDto request, Canteen canteen, Category category, Set<DietaryTag> tags);
 
     CategoryDto toCategoryDto(Category category);
 

@@ -9,12 +9,10 @@ import ru.campuseats.dto.PaymentReceiptDto;
 import ru.campuseats.dto.PaymentRequestDto;
 import ru.campuseats.entity.FoodOrder;
 import ru.campuseats.entity.PaymentTransaction;
-import ru.campuseats.entity.User;
 import ru.campuseats.enums.OrderStatus;
 import ru.campuseats.mapper.PaymentMapper;
 import ru.campuseats.repository.FoodOrderRepository;
 import ru.campuseats.repository.PaymentTransactionRepository;
-import ru.campuseats.repository.UserRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -26,7 +24,6 @@ public class PaymentService {
 
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final FoodOrderRepository foodOrderRepository;
-    private final UserRepository userRepository;
     private final PaymentMapper paymentMapper;
 
     @Transactional
@@ -48,32 +45,13 @@ public class PaymentService {
             );
         }
 
-        User user = order.getUser();
-        BigDecimal orderTotal = order.getTotalAmount();
-        BigDecimal bonusToUse = BigDecimal.ZERO;
-
-        if (Boolean.TRUE.equals(request.getUseBonusPoints())
-                && user.getBonusBalance() != null
-                && user.getBonusBalance().compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal maxAllowedBonus = orderTotal.multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP);
-            bonusToUse = user.getBonusBalance().min(maxAllowedBonus);
-            user.setBonusBalance(user.getBonusBalance().subtract(bonusToUse));
-        }
-
-        BigDecimal finalAmountPaid = orderTotal.subtract(bonusToUse).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal cashback = finalAmountPaid.multiply(new BigDecimal("0.05")).setScale(2, RoundingMode.HALF_UP);
-
-        user.setBonusBalance(user.getBonusBalance().add(cashback));
-        userRepository.save(user);
+        BigDecimal finalAmountPaid = order.getTotalAmount().setScale(2, RoundingMode.HALF_UP);
 
         order.setIsPaid(true);
         order.setUpdatedAt(LocalDateTime.now());
         foodOrderRepository.save(order);
 
-        PaymentTransaction transaction = paymentMapper.toEntity(
-                order, request, finalAmountPaid, bonusToUse, cashback
-        );
-
+        PaymentTransaction transaction = paymentMapper.toEntity(order, request, finalAmountPaid);
         PaymentTransaction savedTx = paymentTransactionRepository.save(transaction);
         return paymentMapper.toReceiptDto(savedTx);
     }
@@ -82,7 +60,7 @@ public class PaymentService {
     public PaymentReceiptDto getReceiptByOrderId(Long orderId) {
         PaymentTransaction tx = paymentTransactionRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Квитанция об оплате для заказа с ID " + orderId + " не найдена"
+                        HttpStatus.NOT_FOUND, "Квитанция для заказа с ID " + orderId + " не найдена"
                 ));
         return paymentMapper.toReceiptDto(tx);
     }

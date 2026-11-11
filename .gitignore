@@ -14,7 +14,7 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local runtime data & uploads ###
+data/
+uploads/
+*.mv.db
+*.trace.db
+*.log
+project_code.txt

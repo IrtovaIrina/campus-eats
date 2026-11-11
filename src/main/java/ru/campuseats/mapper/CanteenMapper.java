@@ -21,6 +21,7 @@ public interface CanteenMapper {
     @Mapping(target = "rating", constant = "5.0")
     @Mapping(target = "reviewsCount", constant = "0")
     @Mapping(target = "isOpen", constant = "true")
+    @Mapping(target = "isVerified", constant = "true")
     @Mapping(target = "manager", ignore = true)
     Canteen toEntity(CreateCanteenRequestDto request);
 }
