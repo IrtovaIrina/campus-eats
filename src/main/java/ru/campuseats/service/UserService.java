@@ -20,7 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -48,10 +47,10 @@ public class UserService {
         user.setPasswordHash(hashPassword(request.getPassword()));
         User saved = userRepository.save(user);
 
-        if (saved.getRole() == Role.VENDOR) {
+        if (saved.getRole() == Role.CANTEEN) {
             String cName = (request.getCanteenName() != null && !request.getCanteenName().isBlank())
                     ? request.getCanteenName().trim()
-                    : "Столовая («" + saved.getFullName() + "»)";
+                    : "Буфет («" + saved.getFullName() + "»)";
             String cBuilding = (request.getCanteenBuilding() != null && !request.getCanteenBuilding().isBlank())
                     ? request.getCanteenBuilding().trim()
                     : "Главный корпус";
@@ -63,7 +62,7 @@ public class UserService {
                     : "08:30 - 18:00";
             String cDesc = (request.getCanteenDescription() != null && !request.getCanteenDescription().isBlank())
                     ? request.getCanteenDescription().trim()
-                    : "Точка питания кампуса";
+                    : "Столовая кампуса";
 
             Canteen newCanteen = Canteen.builder()
                     .name(cName)
@@ -114,14 +113,6 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserDto getUserById(Long id) {
         return userMapper.toDto(findUserEntityOrThrow(id));
-    }
-
-    @Transactional(readOnly = true)
-    public List<UserDto> getUsers(Role role) {
-        List<User> users = (role != null)
-                ? userRepository.findByRoleOrderByIdAsc(role)
-                : userRepository.findAll();
-        return userMapper.toDtoList(users);
     }
 
     private User findUserEntityOrThrow(Long id) {

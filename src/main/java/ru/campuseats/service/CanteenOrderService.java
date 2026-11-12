@@ -20,7 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class VendorOrderService {
+public class CanteenOrderService {
 
     private final FoodOrderRepository foodOrderRepository;
     private final NotificationRepository notificationRepository;

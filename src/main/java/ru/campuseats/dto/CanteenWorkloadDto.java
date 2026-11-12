@@ -10,15 +10,13 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Статистика загруженности и выручки точки питания")
+@Schema(description = "Статистика загруженности и выручки буфета")
 public class CanteenWorkloadDto {
 
     private Long canteenId;
     private String canteenName;
     private String building;
-    private Integer totalOrdersCount;
     private Integer activeQueueCount;
-    private Integer slotCapacity;
     private Integer workloadPercent;
     private String workloadLevel;
     private BigDecimal revenue;

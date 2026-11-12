@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/canteens")
 @RequiredArgsConstructor
-@Tag(name = "Точки питания", description = "Управление столовыми и кафе кампуса")
+@Tag(name = "Буфеты", description = "Управление столовыми и кафе кампуса")
 public class CanteenController {
 
     private final CanteenService canteenService;
