@@ -50,33 +50,20 @@
 Ниже представлена структура таблиц БД для визуализации в **Draw.io** / **DrawSQL** / **dbdiagram.io**:
 
 <img src="DB.png"/>
-### ER-диаграмма базы данных (Mermaid / Draw.io совместимая)
 
-Эту схему также можно импортировать напрямую в **Draw.io** через меню `Arrange (Расположение)` ➔ `Insert (Вставить)` ➔ `Advanced (Дополнительно)` ➔ `Mermaid`:
 
-```mermaid
-erDiagram
-    users ||--o{ canteens : "manages"
-    users ||--o{ cart_items : "has"
-    users ||--o{ favorite_dishes : "saves"
-    users ||--o{ food_orders : "places"
-    users ||--o{ notifications : "receives"
-    users ||--o{ reviews : "writes"
+### Описание сущностей базы данных
 
-    canteens ||--o{ dishes : "offers"
-    canteens ||--o{ food_orders : "fulfills"
-
-    categories ||--o{ dishes : "classifies"
-    dishes ||--o{ dish_dietary_tags : "has"
-    dietary_tags ||--o{ dish_dietary_tags : "tagged_in"
-
-    dishes ||--o{ cart_items : "added_to"
-    dishes ||--o{ favorite_dishes : "favorited_in"
-    dishes ||--o{ order_items : "referenced_in"
-    dishes ||--o{ reviews : "rated_in"
-
-    food_orders ||--|{ order_items : "contains"
-    food_orders ||--o| payment_transactions : "paid_by"
-    food_orders ||--o{ notifications : "triggers"
-    food_orders ||--o{ reviews : "reviewed_from"
-```
+1. **`users`** — учётные записи пользователей системы (ФИО, контакты, роль `STUDENT`/`CANTEEN`/`ADMIN`, учебная группа).
+2. **`canteens`** — столовые и буфеты кампуса (название, корпус, этаж, график работы, рейтинг, статус открытия и верификации, привязка к менеджеру).
+3. **`categories`** — справочник категорий блюд и напитков для навигации и сортировки в меню (`name`, `slug`, `display_order`).
+4. **`dietary_tags`** — справочник диетических меток и особенностей питания с цветовым кодированием бейджей (`name`, `code`, `badge_color`).
+5. **`dishes`** — позиции меню конкретной столовой с ценой, составом, весом, КБЖУ, временем приготовления, рейтингом и статусом наличия.
+6. **`dish_dietary_tags`** — связующая таблица (`M:N`) между блюдами (`dishes`) и диетическими метками (`dietary_tags`).
+7. **`favorite_dishes`** — избранные блюда пользователей для быстрого доступа к любимым позициям меню.
+8. **`cart_items`** — позиции в текущей корзине пользователя с указанием количества и пожеланий к приготовлению (`special_request`).
+9. **`food_orders`** — оформленные предзаказы с уникальным номером, выбранным интервалом выдачи (`pickup_time_slot`), итоговой суммой, калорийностью, статусом заказа и отметкой об оплате.
+10. **`order_items`** — состав оформленного заказа с фиксацией названия (`dish_name_snapshot`), цены и калорийности блюда на момент покупки.
+11. **`payment_transactions`** — история и детали платёжных транзакций по заказам (метод оплаты, референс, сумма, статус и время проведения).
+12. **`reviews`** — отзывы и оценки студентов по выполненным заказам и конкретным блюдам, а также официальные ответы столовой (`canteen_reply`).
+13. **`notifications`** — системные уведомления для пользователей о статусах их заказов и событиях в приложении.
