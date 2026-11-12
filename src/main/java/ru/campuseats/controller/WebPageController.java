@@ -30,7 +30,7 @@ public class WebPageController {
     private final CartService cartService;
     private final OrderService orderService;
     private final PaymentService paymentService;
-    private final VendorOrderService vendorOrderService;
+    private final CanteenOrderService canteenOrderService;
     private final NotificationService notificationService;
     private final ReviewService reviewService;
     private final AnalyticsService analyticsService;
@@ -125,31 +125,31 @@ public class WebPageController {
             }
         }
 
-        if (currentUser.getRole() == Role.VENDOR) {
-            String vendorTab = "default".equals(tab) ? "vendor_orders" : tab;
-            model.addAttribute("activeTab", vendorTab);
+        if (currentUser.getRole() == Role.CANTEEN) {
+            String canteenTab = "default".equals(tab) ? "canteen_orders" : tab;
+            model.addAttribute("activeTab", canteenTab);
 
             CanteenDto myCanteen = canteenService.getCanteenByManagerId(userId);
             Long myCanteenId = myCanteen.getId();
-            model.addAttribute("vendorCanteen", myCanteen);
-            model.addAttribute("vendorCanteenId", myCanteenId);
+            model.addAttribute("managedCanteen", myCanteen);
+            model.addAttribute("managedCanteenId", myCanteenId);
 
-            if ("vendor_orders".equals(vendorTab)) {
-                model.addAttribute("vendorOrders", vendorOrderService.getCanteenQueue(myCanteenId, null));
+            if ("canteen_orders".equals(canteenTab)) {
+                model.addAttribute("canteenOrders", canteenOrderService.getCanteenQueue(myCanteenId, null));
             }
-            if ("vendor_menu".equals(vendorTab)) {
-                model.addAttribute("vendorDishes", dishCatalogService.searchAndFilterDishes(
+            if ("canteen_menu".equals(canteenTab)) {
+                model.addAttribute("canteenDishes", dishCatalogService.searchAndFilterDishes(
                         null, myCanteenId, null, null, null, null, false, "rating"
                 ));
                 if (editingDishId != null) {
                     model.addAttribute("editingDish", dishCatalogService.getDishDetails(editingDishId));
                 }
             }
-            if ("vendor_stats".equals(vendorTab)) {
-                model.addAttribute("vendorAnalytics", analyticsService.getCampusDashboard(myCanteenId));
+            if ("canteen_stats".equals(canteenTab)) {
+                model.addAttribute("canteenAnalytics", analyticsService.getCampusDashboard(myCanteenId));
             }
-            if ("vendor_reviews".equals(vendorTab)) {
-                model.addAttribute("vendorReviews", reviewService.getReviewsForCanteen(myCanteenId));
+            if ("canteen_reviews".equals(canteenTab)) {
+                model.addAttribute("canteenReviews", reviewService.getReviewsForCanteen(myCanteenId));
             }
         }
 
@@ -195,7 +195,7 @@ public class WebPageController {
         try {
             UserDto created = userService.register(request);
             session.setAttribute(SESSION_USER_ID, created.getId());
-            if (created.getRole() == Role.VENDOR) {
+            if (created.getRole() == Role.CANTEEN) {
                 redirectAttributes.addFlashAttribute(
                         "message",
                         "Аккаунт точки питания создан и отправлен на подтверждение администратору."
@@ -409,8 +409,8 @@ public class WebPageController {
         return "redirect:/?tab=notifications";
     }
 
-    @PostMapping("/ui/vendor/canteen-update")
-    public String vendorUpdateCanteenProfile(
+    @PostMapping("/ui/canteen/canteen-update")
+    public String canteenUpdateProfile(
             @ModelAttribute CreateCanteenRequestDto request,
             @RequestParam(defaultValue = "false") boolean isOpen,
             HttpSession session,
@@ -425,33 +425,33 @@ public class WebPageController {
         return "redirect:/?tab=profile";
     }
 
-    @PostMapping("/ui/vendor/status")
-    public String vendorUpdateOrderStatus(
+    @PostMapping("/ui/canteen/status")
+    public String canteenUpdateOrderStatus(
             @RequestParam Long orderId,
             @ModelAttribute UpdateOrderStatusRequestDto request,
             RedirectAttributes redirectAttributes
     ) {
-        vendorOrderService.updateOrderStatus(orderId, request);
+        canteenOrderService.updateOrderStatus(orderId, request);
         redirectAttributes.addFlashAttribute(
                 "message",
                 "Статус заказа изменён на «" + request.getStatus().getDisplayName() + "»."
         );
-        return "redirect:/?tab=vendor_orders";
+        return "redirect:/?tab=canteen_orders";
     }
 
-    @PostMapping("/ui/vendor/dish-availability")
-    public String vendorToggleAvailability(
+    @PostMapping("/ui/canteen/dish-availability")
+    public String canteenToggleAvailability(
             @RequestParam Long dishId,
             @RequestParam boolean available,
             RedirectAttributes redirectAttributes
     ) {
         dishCatalogService.updateDishAvailability(dishId, available);
         redirectAttributes.addFlashAttribute("message", "Статус блюда обновлён.");
-        return "redirect:/?tab=vendor_menu";
+        return "redirect:/?tab=canteen_menu";
     }
 
-    @PostMapping("/ui/vendor/dish-create")
-    public String vendorCreateDish(
+    @PostMapping("/ui/canteen/dish-create")
+    public String canteenCreateDish(
             @ModelAttribute CreateDishRequestDto request,
             @RequestParam("imageFile") MultipartFile imageFile,
             HttpSession session,
@@ -468,11 +468,11 @@ public class WebPageController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка: " + e.getMessage());
         }
-        return "redirect:/?tab=vendor_menu";
+        return "redirect:/?tab=canteen_menu";
     }
 
-    @PostMapping("/ui/vendor/dish-update")
-    public String vendorUpdateDish(
+    @PostMapping("/ui/canteen/dish-update")
+    public String canteenUpdateDish(
             @RequestParam Long dishId,
             @ModelAttribute CreateDishRequestDto request,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
@@ -490,11 +490,11 @@ public class WebPageController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка: " + e.getMessage());
         }
-        return "redirect:/?tab=vendor_menu";
+        return "redirect:/?tab=canteen_menu";
     }
 
-    @PostMapping("/ui/vendor/dish-delete")
-    public String vendorDeleteDish(
+    @PostMapping("/ui/canteen/dish-delete")
+    public String canteenDeleteDish(
             @RequestParam Long dishId,
             RedirectAttributes redirectAttributes
     ) {
@@ -504,28 +504,28 @@ public class WebPageController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка: " + e.getMessage());
         }
-        return "redirect:/?tab=vendor_menu";
+        return "redirect:/?tab=canteen_menu";
     }
 
-    @PostMapping("/ui/vendor/review-reply")
-    public String vendorReplyReview(
+    @PostMapping("/ui/canteen/review-reply")
+    public String canteenReplyReview(
             @RequestParam Long reviewId,
             @RequestParam String replyText,
             RedirectAttributes redirectAttributes
     ) {
-        reviewService.addVendorReply(reviewId, replyText);
+        reviewService.addCanteenReply(reviewId, replyText);
         redirectAttributes.addFlashAttribute("message", "Ответ сохранён.");
-        return "redirect:/?tab=vendor_reviews";
+        return "redirect:/?tab=canteen_reviews";
     }
 
-    @PostMapping("/ui/vendor/review-delete")
-    public String vendorDeleteReview(
+    @PostMapping("/ui/canteen/review-delete")
+    public String canteenDeleteReview(
             @RequestParam Long reviewId,
             RedirectAttributes redirectAttributes
     ) {
         reviewService.deleteReview(reviewId);
         redirectAttributes.addFlashAttribute("message", "Отзыв удалён.");
-        return "redirect:/?tab=vendor_reviews";
+        return "redirect:/?tab=canteen_reviews";
     }
 
     @PostMapping("/ui/admin/canteen/update")

@@ -37,7 +37,7 @@ public class Review {
     private String comment;
 
     @Column(length = 400)
-    private String vendorReply;
+    private String canteenReply;
 
     @Column(nullable = false)
     @Builder.Default

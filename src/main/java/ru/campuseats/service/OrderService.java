@@ -92,14 +92,14 @@ public class OrderService {
         notificationRepository.save(studentNotif);
 
         if (canteen.getManager() != null) {
-            Notification vendorNotif = notificationMapper.toEntity(
+            Notification canteenNotif = notificationMapper.toEntity(
                     canteen.getManager(),
                     savedOrder,
                     "Новый предзаказ #" + savedOrder.getOrderNumber(),
                     "Поступил предзаказ от " + user.getFullName() + " на сумму " + savedOrder.getTotalAmount()
                             + " ₽ ко времени " + savedOrder.getPickupTimeSlot() + "."
             );
-            notificationRepository.save(vendorNotif);
+            notificationRepository.save(canteenNotif);
         }
 
         return orderMapper.toResponseDto(savedOrder);

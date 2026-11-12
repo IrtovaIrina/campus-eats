@@ -45,7 +45,7 @@ public class ReviewController {
             @PathVariable Long reviewId,
             @RequestParam String replyText
     ) {
-        return reviewService.addVendorReply(reviewId, replyText);
+        return reviewService.addCanteenReply(reviewId, replyText);
     }
 
     @DeleteMapping("/{reviewId}")

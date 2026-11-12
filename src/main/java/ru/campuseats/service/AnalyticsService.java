@@ -6,15 +6,19 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.campuseats.dto.CampusAnalyticsDto;
 import ru.campuseats.dto.CanteenWorkloadDto;
 import ru.campuseats.dto.PopularDishStatDto;
-import ru.campuseats.entity.*;
+import ru.campuseats.entity.Canteen;
+import ru.campuseats.entity.Dish;
+import ru.campuseats.entity.FoodOrder;
+import ru.campuseats.entity.OrderItem;
 import ru.campuseats.enums.OrderStatus;
 import ru.campuseats.mapper.AnalyticsMapper;
-import ru.campuseats.repository.*;
+import ru.campuseats.repository.CanteenRepository;
+import ru.campuseats.repository.DishRepository;
+import ru.campuseats.repository.FoodOrderRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +27,6 @@ public class AnalyticsService {
     private final FoodOrderRepository foodOrderRepository;
     private final CanteenRepository canteenRepository;
     private final DishRepository dishRepository;
-    private final UserRepository userRepository;
     private final AnalyticsMapper analyticsMapper;
 
     @Transactional(readOnly = true)
@@ -37,9 +40,6 @@ public class AnalyticsService {
                 .filter(o -> o.getStatus() == OrderStatus.ACCEPTED
                         || o.getStatus() == OrderStatus.COOKING
                         || o.getStatus() == OrderStatus.READY)
-                .count();
-        int completedOrders = (int) allOrders.stream()
-                .filter(o -> o.getStatus() == OrderStatus.COMPLETED)
                 .count();
 
         List<FoodOrder> validOrders = allOrders.stream()
@@ -55,19 +55,6 @@ public class AnalyticsService {
                 ? BigDecimal.ZERO
                 : totalRevenue.divide(BigDecimal.valueOf(validOrders.size()), 2, RoundingMode.HALF_UP);
 
-        Map<String, Long> ordersByStatus = new LinkedHashMap<>();
-        for (OrderStatus status : OrderStatus.values()) {
-            long count = allOrders.stream().filter(o -> o.getStatus() == status).count();
-            ordersByStatus.put(status.name(), count);
-        }
-
-        Map<String, Long> ordersByTimeSlot = allOrders.stream()
-                .collect(Collectors.groupingBy(
-                        FoodOrder::getPickupTimeSlot,
-                        LinkedHashMap::new,
-                        Collectors.counting()
-                ));
-
         List<Canteen> canteens = (canteenIdFilter != null)
                 ? canteenRepository.findById(canteenIdFilter).map(List::of).orElse(Collections.emptyList())
                 : canteenRepository.findAll();
@@ -81,13 +68,9 @@ public class AnalyticsService {
         return analyticsMapper.toCampusAnalyticsDto(
                 totalOrders,
                 activeOrders,
-                completedOrders,
                 totalRevenue,
                 averageCheck,
-                userRepository.count(),
                 dishRepository.count(),
-                ordersByStatus,
-                ordersByTimeSlot,
                 workloads,
                 topDishes
         );
@@ -95,7 +78,6 @@ public class AnalyticsService {
 
     private CanteenWorkloadDto buildCanteenWorkload(Canteen canteen) {
         List<FoodOrder> canteenOrders = foodOrderRepository.findByCanteenIdOrderByCreatedAtDesc(canteen.getId());
-        int totalCount = canteenOrders.size();
 
         int activeQueue = (int) canteenOrders.stream()
                 .filter(o -> o.getStatus() == OrderStatus.ACCEPTED
@@ -103,8 +85,7 @@ public class AnalyticsService {
                         || o.getStatus() == OrderStatus.READY)
                 .count();
 
-        int slotCapacity = 5;
-        int workloadPercent = Math.min(100, Math.round((activeQueue * 100.0f) / slotCapacity));
+        int workloadPercent = Math.min(100, Math.round((activeQueue * 100.0f) / 5));
 
         String workloadLevel;
         if (workloadPercent >= 75) {
@@ -123,9 +104,7 @@ public class AnalyticsService {
 
         return analyticsMapper.toCanteenWorkloadDto(
                 canteen,
-                totalCount,
                 activeQueue,
-                slotCapacity,
                 workloadPercent,
                 workloadLevel,
                 revenue

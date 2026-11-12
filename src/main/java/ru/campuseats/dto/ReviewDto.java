@@ -24,6 +24,6 @@ public class ReviewDto {
     private String orderNumber;
     private Integer rating;
     private String comment;
-    private String vendorReply;
+    private String canteenReply;
     private LocalDateTime createdAt;
 }

@@ -8,17 +8,17 @@ import org.springframework.web.bind.annotation.*;
 import ru.campuseats.dto.OrderResponseDto;
 import ru.campuseats.dto.UpdateOrderStatusRequestDto;
 import ru.campuseats.enums.OrderStatus;
-import ru.campuseats.service.VendorOrderService;
+import ru.campuseats.service.CanteenOrderService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/vendor/orders")
+@RequestMapping("/api/v1/canteen/orders")
 @RequiredArgsConstructor
-@Tag(name = "Заказы точки питания", description = "Очередь заказов и смена статусов приготовления")
-public class VendorOrderController {
+@Tag(name = "Заказы в столовых", description = "Очередь заказов и смена статусов приготовления")
+public class CanteenOrderController {
 
-    private final VendorOrderService vendorOrderService;
+    private final CanteenOrderService canteenOrderService;
 
     @GetMapping("/canteen/{canteenId}")
     @Operation(summary = "Получить очередь заказов точки питания")
@@ -26,7 +26,7 @@ public class VendorOrderController {
             @PathVariable Long canteenId,
             @RequestParam(required = false) OrderStatus status
     ) {
-        return vendorOrderService.getCanteenQueue(canteenId, status);
+        return canteenOrderService.getCanteenQueue(canteenId, status);
     }
 
     @PatchMapping("/{orderId}/status")
@@ -35,6 +35,6 @@ public class VendorOrderController {
             @PathVariable Long orderId,
             @Valid @RequestBody UpdateOrderStatusRequestDto request
     ) {
-        return vendorOrderService.updateOrderStatus(orderId, request);
+        return canteenOrderService.updateOrderStatus(orderId, request);
     }
 }

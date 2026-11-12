@@ -35,15 +35,10 @@ public class AuthController {
         return userService.register(request);
     }
 
-    @GetMapping("/users")
-    @Operation(summary = "Список пользователей с фильтрацией по роли (для переключения сессий)")
-    public List<UserDto> getUsers(@RequestParam(required = false) Role role) {
-        return userService.getUsers(role);
-    }
-
     @GetMapping("/users/{id}")
     @Operation(summary = "Получение профиля пользователя по ID")
     public UserDto getUserProfile(@PathVariable Long id) {
         return userService.getUserById(id);
     }
+
 }

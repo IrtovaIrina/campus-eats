@@ -19,7 +19,7 @@ public class AnalyticsController {
     private final AnalyticsService analyticsService;
 
     @GetMapping("/dashboard")
-    @Operation(summary = "Получить сводную статистику по кампусу или конкретной точке питания")
+    @Operation(summary = "Получить сводную статистику по конкретной точке питания")
     public CampusAnalyticsDto getDashboard(@RequestParam(required = false) Long canteenId) {
         return analyticsService.getCampusDashboard(canteenId);
     }

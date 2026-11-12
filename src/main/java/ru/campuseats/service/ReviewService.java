@@ -70,7 +70,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewDto addVendorReply(Long reviewId, String replyText) {
+    public ReviewDto addCanteenReply(Long reviewId, String replyText) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Отзыв с ID " + reviewId + " не найден"
@@ -80,7 +80,7 @@ public class ReviewService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Текст ответа не может быть пустым");
         }
 
-        review.setVendorReply(replyText.trim());
+        review.setCanteenReply(replyText.trim());
         return reviewMapper.toDto(reviewRepository.save(review));
     }
 

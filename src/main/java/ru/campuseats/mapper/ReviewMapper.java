@@ -32,7 +32,7 @@ public interface ReviewMapper {
     @Mapping(target = "order", source = "order")
     @Mapping(target = "rating", source = "request.rating")
     @Mapping(target = "comment", expression = "java(request.getComment().trim())")
-    @Mapping(target = "vendorReply", ignore = true)
+    @Mapping(target = "canteenReply", ignore = true)
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
     Review toEntity(CreateReviewRequestDto request, User user, Dish dish, FoodOrder order);
 }

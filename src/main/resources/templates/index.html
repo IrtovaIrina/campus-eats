@@ -77,9 +77,9 @@
                         <div class="mb-2">
                             <label class="form-label">Тип аккаунта</label>
                             <select name="role" class="form-select"
-                                    onchange="document.getElementById('vendorFields').style.display = (this.value === 'VENDOR' ? 'block' : 'none');">
+                                    onchange="document.getElementById('canteenFields').style.display = (this.value === 'CANTEEN' ? 'block' : 'none');">
                                 <option value="STUDENT">Студент / Преподаватель</option>
-                                <option value="VENDOR">Точка питания</option>
+                                <option value="CANTEEN">Точка питания</option>
                             </select>
                         </div>
                         <div class="mb-2">
@@ -103,7 +103,7 @@
                             <input type="text" name="studentGroup" class="form-control">
                         </div>
 
-                        <div id="vendorFields" style="display: none;" class="p-2 mb-3 bg-light border rounded">
+                        <div id="canteenFields" style="display: none;" class="p-2 mb-3 bg-light border rounded">
                             <h6 class="small fw-bold mb-2">Информация о точке питания</h6>
                             <div class="mb-2">
                                 <label class="form-label small mb-1">Название</label>
@@ -324,8 +324,8 @@
                     <li th:each="r : ${dishReviews}" class="list-group-item">
                         <strong th:text="${r.userFullName} + ' (' + ${r.rating} + '/5): '"></strong>
                         <span th:text="${r.comment}"></span>
-                        <div th:if="${r.vendorReply != null}" class="text-success small mt-1">
-                            <em>Ответ: <span th:text="${r.vendorReply}"></span></em>
+                        <div th:if="${r.canteenReply != null}" class="text-success small mt-1">
+                            <em>Ответ: <span th:text="${r.canteenReply}"></span></em>
                         </div>
                     </li>
                 </ul>
@@ -602,11 +602,11 @@
         </div>
     </div>
 
-    <div th:if="${currentUser != null and currentUser.role.name() == 'VENDOR'}">
+    <div th:if="${currentUser != null and currentUser.role.name() == 'CANTEEN'}">
 
-        <div th:if="${!vendorCanteen.isVerified}" class="alert alert-warning d-flex align-items-center justify-content-between">
+        <div th:if="${!managedCanteen.isVerified}" class="alert alert-warning d-flex align-items-center justify-content-between">
             <div>
-                Точка питания «<span th:text="${vendorCanteen.name}"></span>» ожидает подтверждения администратором.
+                Точка питания «<span th:text="${managedCanteen.name}"></span>» ожидает подтверждения администратором.
             </div>
             <span class="badge bg-warning text-dark">На проверке</span>
         </div>
@@ -614,32 +614,32 @@
         <div class="card shadow-sm mb-3">
             <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div>
-                    <strong class="fs-5" th:text="${vendorCanteen.name}"></strong>
+                    <strong class="fs-5" th:text="${managedCanteen.name}"></strong>
                     <span class="badge ms-1"
-                          th:classappend="${vendorCanteen.isVerified ? 'bg-success' : 'bg-warning text-dark'}"
-                          th:text="${vendorCanteen.isVerified ? 'Подтверждена' : 'На проверке'}"></span>
+                          th:classappend="${managedCanteen.isVerified ? 'bg-success' : 'bg-warning text-dark'}"
+                          th:text="${managedCanteen.isVerified ? 'Подтверждена' : 'На проверке'}"></span>
                     <span class="badge ms-1"
-                          th:classappend="${vendorCanteen.isOpen ? 'bg-primary' : 'bg-secondary'}"
-                          th:text="${vendorCanteen.isOpen ? 'Открыто' : 'Закрыто'}"></span>
-                    <div class="small text-muted" th:text="${vendorCanteen.building} + ', ' + ${vendorCanteen.floor} + ' этаж (' + ${vendorCanteen.openingHours} + ')'"></div>
+                          th:classappend="${managedCanteen.isOpen ? 'bg-primary' : 'bg-secondary'}"
+                          th:text="${managedCanteen.isOpen ? 'Открыто' : 'Закрыто'}"></span>
+                    <div class="small text-muted" th:text="${managedCanteen.building} + ', ' + ${managedCanteen.floor} + ' этаж (' + ${managedCanteen.openingHours} + ')'"></div>
                 </div>
 
                 <ul class="nav nav-pills">
                     <li class="nav-item">
-                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'vendor_orders' ? 'active' : ''}"
-                           th:href="@{/(tab='vendor_orders')}">Заказы</a>
+                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'canteen_orders' ? 'active' : ''}"
+                           th:href="@{/(tab='canteen_orders')}">Заказы</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'vendor_stats' ? 'active' : ''}"
-                           th:href="@{/(tab='vendor_stats')}">Статистика</a>
+                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'canteen_stats' ? 'active' : ''}"
+                           th:href="@{/(tab='canteen_stats')}">Статистика</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'vendor_menu' ? 'active' : ''}"
-                           th:href="@{/(tab='vendor_menu')}">Меню</a>
+                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'canteen_menu' ? 'active' : ''}"
+                           th:href="@{/(tab='canteen_menu')}">Меню</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'vendor_reviews' ? 'active' : ''}"
-                           th:href="@{/(tab='vendor_reviews')}">Отзывы</a>
+                        <a class="nav-link btn-sm" th:classappend="${activeTab == 'canteen_reviews' ? 'active' : ''}"
+                           th:href="@{/(tab='canteen_reviews')}">Отзывы</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link btn-sm" th:classappend="${activeTab == 'notifications' ? 'active' : ''}"
@@ -653,7 +653,7 @@
             </div>
         </div>
 
-        <div th:if="${activeTab == 'vendor_orders'}" class="card shadow-sm">
+        <div th:if="${activeTab == 'canteen_orders'}" class="card shadow-sm">
             <div class="card-body">
                 <h5 class="card-title mb-3">Текущие заказы</h5>
                 <div class="table-responsive">
@@ -669,7 +669,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="o : ${vendorOrders}">
+                        <tr th:each="o : ${canteenOrders}">
                             <td><strong th:text="${o.orderNumber}"></strong></td>
                             <td th:text="${o.userFullName} + ' (' + ${o.userStudentGroup} + ')'"></td>
                             <td><strong th:text="${o.pickupTimeSlot}"></strong></td>
@@ -681,7 +681,7 @@
                             </td>
                             <td><span class="badge bg-primary" th:text="${o.statusDisplayName}"></span></td>
                             <td>
-                                <form method="post" action="/ui/vendor/status" class="d-flex gap-1">
+                                <form method="post" action="/ui/canteen/status" class="d-flex gap-1">
                                     <input type="hidden" name="orderId" th:value="${o.id}">
                                     <select name="status" class="form-select form-select-sm">
                                         <option value="COOKING">Готовится</option>
@@ -699,32 +699,32 @@
             </div>
         </div>
 
-        <div th:if="${activeTab == 'vendor_stats' and vendorAnalytics != null}" class="card shadow-sm">
+        <div th:if="${activeTab == 'canteen_stats' and canteenAnalytics != null}" class="card shadow-sm">
             <div class="card-body">
                 <h5 class="card-title mb-3">Статистика продаж</h5>
                 <div class="row g-3 mb-4">
                     <div class="col-6 col-md-3">
                         <div class="p-3 bg-light border rounded">
                             <small class="text-muted">Выручка</small>
-                            <h4 class="mb-0" th:text="${vendorAnalytics.totalRevenue} + ' ₽'"></h4>
+                            <h4 class="mb-0" th:text="${canteenAnalytics.totalRevenue} + ' ₽'"></h4>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 bg-light border rounded">
                             <small class="text-muted">Средний чек</small>
-                            <h4 class="mb-0" th:text="${vendorAnalytics.averageOrderCheck} + ' ₽'"></h4>
+                            <h4 class="mb-0" th:text="${canteenAnalytics.averageOrderCheck} + ' ₽'"></h4>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 bg-light border rounded">
                             <small class="text-muted">Всего заказов</small>
-                            <h4 class="mb-0" th:text="${vendorAnalytics.totalOrders}"></h4>
+                            <h4 class="mb-0" th:text="${canteenAnalytics.totalOrders}"></h4>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 bg-light border rounded">
                             <small class="text-muted">Активных</small>
-                            <h4 class="mb-0" th:text="${vendorAnalytics.activeOrders}"></h4>
+                            <h4 class="mb-0" th:text="${canteenAnalytics.activeOrders}"></h4>
                         </div>
                     </div>
                 </div>
@@ -740,7 +740,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="top : ${vendorAnalytics.topDishes}">
+                    <tr th:each="top : ${canteenAnalytics.topDishes}">
                         <td th:text="${top.dishName}"></td>
                         <td th:text="${top.categoryName}"></td>
                         <td th:text="${top.totalPortionsSold} + ' шт.'"></td>
@@ -751,7 +751,7 @@
             </div>
         </div>
 
-        <div th:if="${activeTab == 'vendor_menu'}" class="card shadow-sm">
+        <div th:if="${activeTab == 'canteen_menu'}" class="card shadow-sm">
             <div class="card-body">
                 <h5 class="card-title mb-3">Меню</h5>
 
@@ -760,10 +760,10 @@
                         <h6 class="mb-0">
                             Редактирование: <strong th:text="${editingDish.name}"></strong>
                         </h6>
-                        <a th:href="@{/(tab='vendor_menu')}" class="btn btn-outline-secondary btn-sm">Отмена</a>
+                        <a th:href="@{/(tab='canteen_menu')}" class="btn btn-outline-secondary btn-sm">Отмена</a>
                     </div>
 
-                    <form method="post" action="/ui/vendor/dish-update" enctype="multipart/form-data" class="row g-2">
+                    <form method="post" action="/ui/canteen/dish-update" enctype="multipart/form-data" class="row g-2">
                         <input type="hidden" name="dishId" th:value="${editingDish.id}">
                         <input type="hidden" name="imageUrl" th:value="${editingDish.imageUrl}">
 
@@ -836,7 +836,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="d : ${vendorDishes}"
+                        <tr th:each="d : ${canteenDishes}"
                             th:classappend="${editingDish != null and editingDish.id == d.id ? 'table-warning' : ''}">
                             <td><img th:src="${d.imageUrl}" alt="Фото" class="dish-thumb"></td>
                             <td>
@@ -856,17 +856,17 @@
                             </td>
                             <td>
                                 <div class="d-flex flex-wrap gap-1">
-                                    <a th:href="@{/(tab='vendor_menu', editingDishId=${d.id})}"
+                                    <a th:href="@{/(tab='canteen_menu', editingDishId=${d.id})}"
                                        class="btn btn-outline-primary btn-sm">Изменить</a>
 
-                                    <form method="post" action="/ui/vendor/dish-availability">
+                                    <form method="post" action="/ui/canteen/dish-availability">
                                         <input type="hidden" name="dishId" th:value="${d.id}">
                                         <input type="hidden" name="available" th:value="${!d.isAvailable}">
                                         <button type="submit" class="btn btn-outline-secondary btn-sm"
                                                 th:text="${d.isAvailable ? 'В стоп-лист' : 'В продажу'}"></button>
                                     </form>
 
-                                    <form method="post" action="/ui/vendor/dish-delete">
+                                    <form method="post" action="/ui/canteen/dish-delete">
                                         <input type="hidden" name="dishId" th:value="${d.id}">
                                         <button type="submit" class="btn btn-outline-danger btn-sm">Удалить</button>
                                     </form>
@@ -877,7 +877,7 @@
                     </table>
                 </div>
 
-                <form method="post" action="/ui/vendor/dish-create" enctype="multipart/form-data"
+                <form method="post" action="/ui/canteen/dish-create" enctype="multipart/form-data"
                       class="row g-2 bg-light p-3 border rounded mt-3">
                     <h6>Новое блюдо</h6>
                     <div class="col-12 col-md-3">
@@ -931,7 +931,7 @@
             </div>
         </div>
 
-        <div th:if="${activeTab == 'vendor_reviews'}" class="card shadow-sm">
+        <div th:if="${activeTab == 'canteen_reviews'}" class="card shadow-sm">
             <div class="card-body">
                 <h5 class="card-title mb-3">Отзывы</h5>
                 <table class="table align-middle">
@@ -945,19 +945,19 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="r : ${vendorReviews}">
+                    <tr th:each="r : ${canteenReviews}">
                         <td><strong th:text="${r.dishName}"></strong></td>
                         <td th:text="${r.userFullName} + ' (' + ${r.rating} + '/5)'"></td>
                         <td th:text="${r.comment}"></td>
-                        <td th:text="${r.vendorReply != null ? r.vendorReply : '—'}"></td>
+                        <td th:text="${r.canteenReply != null ? r.canteenReply : '—'}"></td>
                         <td>
                             <div class="d-flex gap-1">
-                                <form method="post" action="/ui/vendor/review-reply" class="d-flex gap-1">
+                                <form method="post" action="/ui/canteen/review-reply" class="d-flex gap-1">
                                     <input type="hidden" name="reviewId" th:value="${r.id}">
                                     <input type="text" name="replyText" class="form-control form-control-sm" placeholder="Ответ" required>
                                     <button type="submit" class="btn btn-primary btn-sm">Ответить</button>
                                 </form>
-                                <form method="post" action="/ui/vendor/review-delete">
+                                <form method="post" action="/ui/canteen/review-delete">
                                     <input type="hidden" name="reviewId" th:value="${r.id}">
                                     <button type="submit" class="btn btn-outline-danger btn-sm">Удалить</button>
                                 </form>
@@ -1220,44 +1220,44 @@
             </div>
         </div>
 
-        <div th:if="${currentUser.role.name() == 'VENDOR' and vendorCanteen != null}" class="col-12 col-lg-7">
+        <div th:if="${currentUser.role.name() == 'CANTEEN' and managedCanteen != null}" class="col-12 col-lg-7">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="card-title mb-0">Настройки точки питания</h5>
                         <span class="badge"
-                              th:classappend="${vendorCanteen.isVerified ? 'bg-success' : 'bg-warning text-dark'}"
-                              th:text="${vendorCanteen.isVerified ? 'Подтверждена' : 'На проверке'}"></span>
+                              th:classappend="${managedCanteen.isVerified ? 'bg-success' : 'bg-warning text-dark'}"
+                              th:text="${managedCanteen.isVerified ? 'Подтверждена' : 'На проверке'}"></span>
                     </div>
 
-                    <form method="post" action="/ui/vendor/canteen-update" class="row g-2">
+                    <form method="post" action="/ui/canteen/canteen-update" class="row g-2">
                         <div class="col-12 col-md-8">
                             <label class="form-label small fw-bold mb-1">Название</label>
-                            <input type="text" name="name" class="form-control form-control-sm" th:value="${vendorCanteen.name}" required>
+                            <input type="text" name="name" class="form-control form-control-sm" th:value="${managedCanteen.name}" required>
                         </div>
                         <div class="col-12 col-md-4">
                             <label class="form-label small fw-bold mb-1">Часы работы</label>
-                            <input type="text" name="openingHours" class="form-control form-control-sm" th:value="${vendorCanteen.openingHours}" required>
+                            <input type="text" name="openingHours" class="form-control form-control-sm" th:value="${managedCanteen.openingHours}" required>
                         </div>
                         <div class="col-9">
                             <label class="form-label small fw-bold mb-1">Корпус</label>
-                            <input type="text" name="building" class="form-control form-control-sm" th:value="${vendorCanteen.building}" required>
+                            <input type="text" name="building" class="form-control form-control-sm" th:value="${managedCanteen.building}" required>
                         </div>
                         <div class="col-3">
                             <label class="form-label small fw-bold mb-1">Этаж</label>
-                            <input type="number" name="floor" class="form-control form-control-sm" th:value="${vendorCanteen.floor}" min="1" required>
+                            <input type="number" name="floor" class="form-control form-control-sm" th:value="${managedCanteen.floor}" min="1" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold mb-1">Описание</label>
-                            <input type="text" name="description" class="form-control form-control-sm" th:value="${vendorCanteen.description}">
+                            <input type="text" name="description" class="form-control form-control-sm" th:value="${managedCanteen.description}">
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold mb-1">URL фото</label>
-                            <input type="text" name="imageUrl" class="form-control form-control-sm" th:value="${vendorCanteen.imageUrl}" required>
+                            <input type="text" name="imageUrl" class="form-control form-control-sm" th:value="${managedCanteen.imageUrl}" required>
                         </div>
                         <div class="col-12 my-2">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="isOpen" value="true" id="canteenOpenSwitch" th:checked="${vendorCanteen.isOpen}">
+                                <input class="form-check-input" type="checkbox" name="isOpen" value="true" id="canteenOpenSwitch" th:checked="${managedCanteen.isOpen}">
                                 <label class="form-check-label small fw-bold" for="canteenOpenSwitch">Принимать заказы</label>
                             </div>
                         </div>
